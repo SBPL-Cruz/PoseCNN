@@ -19,7 +19,7 @@ __global__ void ComputeFlowForward(const int nthreads, const Dtype* bottom_data,
     const Dtype* bottom_meta_data, const int height, const int width, const int channels, const int num_meta_data,
     const int kernel_size, const float threshold, const float max_weight, Dtype* top_data, Dtype* top_weights, Dtype* top_points)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (n, h, w, c) coords in bottom data
     int n = index;
@@ -118,11 +118,11 @@ bool ComputeFlowForwardLaucher(
     const float* bottom_data, const float* bottom_weights, const float* bottom_points,
     const float* bottom_depth, const float* bottom_meta_data,
     const int batch_size, const int height, const int width,
-    const int channels, const int num_meta_data, 
+    const int channels, const int num_meta_data,
     const int kernel_size, const float threshold, const float max_weight,
     float* top_data, float* top_weights, float* top_points, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   cudaError_t err;
 
   const int output_size = batch_size * height * width * channels;
@@ -145,11 +145,11 @@ bool ComputeFlowForwardLaucher(
 
 template <typename Dtype>
 __global__ void ComputeFlowBackward(const int nthreads, const Dtype* top_diff, const Dtype* top_diff_weights,
-    const Dtype* bottom_weights, const Dtype* bottom_points, const float* bottom_depth, const Dtype* bottom_meta_data, 
+    const Dtype* bottom_weights, const Dtype* bottom_points, const float* bottom_depth, const Dtype* bottom_meta_data,
     const Dtype* top_points, const int height, const int width, const int channels, const int num_meta_data, const int kernel_size,
-    const float threshold, const float max_weight, Dtype* bottom_diff, Dtype* bottom_diff_weights) 
+    const float threshold, const float max_weight, Dtype* bottom_diff, Dtype* bottom_diff_weights)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (n, h, w, c) coords in bottom data
     int n = index;
@@ -222,13 +222,13 @@ __global__ void ComputeFlowBackward(const int nthreads, const Dtype* top_diff, c
   }
 }
 
- 
-bool ComputeFlowBackwardLaucher(const float* top_diff, const float* top_diff_weights, const float* bottom_weights, 
+
+bool ComputeFlowBackwardLaucher(const float* top_diff, const float* top_diff_weights, const float* bottom_weights,
     const float* bottom_points, const float* bottom_depth, const float* bottom_meta_data, const float* top_points, const int batch_size,
     const int height, const int width, const int channels, const int num_meta_data, const int kernel_size, const float threshold, const float max_weight,
     float* bottom_diff, float* bottom_diff_weights, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * height * width * channels;
   cudaError_t err;
 

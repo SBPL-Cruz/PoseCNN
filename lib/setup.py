@@ -121,6 +121,8 @@ ext_modules = [
                                      '--compiler-options',
                                      "'-fPIC'"]},
         include_dirs = [numpy_include, CUDA['include'], '/usr/local/include/eigen3']
+        # include_dirs = [numpy_include, CUDA['include'], '/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/venv/local/lib/python2.7/site-packages/tensorflow/include/third_party/eigen3']
+
     ),
     Extension(
         "utils.cython_bbox",

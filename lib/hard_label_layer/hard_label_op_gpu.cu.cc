@@ -14,10 +14,10 @@
 using namespace tensorflow;
 
 template <typename Dtype>
-__global__ void HardlabelForward(const int nthreads, const float* bottom_prob, const int* bottom_gt, 
-  const int num_classes, const float threshold, Dtype* top_data) 
+__global__ void HardlabelForward(const int nthreads, const float* bottom_prob, const int* bottom_gt,
+  const int num_classes, const float threshold, Dtype* top_data)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     for (int c = 0; c < num_classes; c++)
       top_data[index * num_classes + c] = 0.0;
@@ -33,7 +33,7 @@ bool HardlabelForwardLaucher(const float* bottom_prob, const int* bottom_gt,
   const int batch_size, const int height, const int width, const int num_classes,
   const float threshold, float* top_data, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * height * width;
   cudaError_t err;
 
@@ -52,9 +52,9 @@ bool HardlabelForwardLaucher(const float* bottom_prob, const int* bottom_gt,
 
 
 template <typename Dtype>
-__global__ void HardlabelBackward(const int nthreads, const int num_classes, Dtype* bottom_diff_prob, Dtype* bottom_diff_gt) 
+__global__ void HardlabelBackward(const int nthreads, const int num_classes, Dtype* bottom_diff_prob, Dtype* bottom_diff_gt)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     bottom_diff_gt[index] = 0;
     for (int c = 0; c < num_classes; c++)
@@ -66,7 +66,7 @@ __global__ void HardlabelBackward(const int nthreads, const int num_classes, Dty
 bool HardlabelBackwardLaucher(const float* top_diff, const int batch_size, const int height, const int width, const int num_classes,
     float* bottom_diff_prob, float* bottom_diff_gt, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * height * width;
   cudaError_t err;
 

@@ -24,7 +24,7 @@ inline
 cudaError_t checkCuda(cudaError_t result)
 {
   if (result != cudaSuccess) {
-    fprintf(stderr, "CUDA Runtime Error: %s\n", 
+    fprintf(stderr, "CUDA Runtime Error: %s\n",
             cudaGetErrorString(result));
     assert(result == cudaSuccess);
   }
@@ -33,10 +33,10 @@ cudaError_t checkCuda(cudaError_t result)
 
 template <typename Dtype>
 __global__ void AveragedistanceForward(const int nthreads, const Dtype* prediction, const Dtype* target,
-    const Dtype* weight, const Dtype* point, const Dtype* symmetry, const int batch_size, const int num_classes, 
-    const int num_points, const float margin, Dtype* rotations, Dtype* losses, Dtype* diffs) 
+    const Dtype* weight, const Dtype* point, const Dtype* symmetry, const int batch_size, const int num_classes,
+    const int num_points, const float margin, Dtype* rotations, Dtype* losses, Dtype* diffs)
 {
-  CUDA_1D_KERNEL_LOOP(index_thread, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index_thread, nthreads)
   {
     // batch index
     int n = index_thread / num_points;
@@ -207,10 +207,10 @@ __global__ void AveragedistanceForward(const int nthreads, const Dtype* predicti
 
 
 template <typename Dtype>
-__global__ void sum_losses_gradients(const int nthreads, const Dtype* losses, const Dtype* diffs, const int batch_size, 
-    const int num_classes, const int num_points, Dtype* loss_batch, Dtype* bottom_diff) 
+__global__ void sum_losses_gradients(const int nthreads, const Dtype* losses, const Dtype* diffs, const int batch_size,
+    const int num_classes, const int num_points, Dtype* loss_batch, Dtype* bottom_diff)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     int n = index / (POSE_CHANNELS * num_classes);
     int c = index % (POSE_CHANNELS * num_classes);
@@ -232,7 +232,7 @@ __global__ void sum_losses_gradients(const int nthreads, const Dtype* losses, co
 
     if (c == 0)
       loss_batch[n] = lmax * num_points;
-*/    
+*/
 
     bottom_diff[index] = 0;
     for (int p = 0; p < num_points; p++)
@@ -260,7 +260,7 @@ void AveragedistanceForwardLaucher(OpKernelContext* context,
 {
   // run kernels
   cudaError_t err;
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   int output_size;
 
   // temp losses
@@ -345,19 +345,19 @@ void AveragedistanceForwardLaucher(OpKernelContext* context,
 
 template <typename Dtype>
 __global__ void AveragedistanceBackward(const int nthreads, const Dtype* top_diff,
-    const Dtype* bottom_diff, Dtype* output) 
+    const Dtype* bottom_diff, Dtype* output)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     output[index] = top_diff[0] * bottom_diff[index];
   }
 }
 
- 
+
 bool AveragedistanceBackwardLaucher(const float* top_diff, const float* bottom_diff, const int batch_size,
     const int channels, float* output, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * channels;
   cudaError_t err;
 

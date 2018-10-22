@@ -14,9 +14,9 @@
 using namespace tensorflow;
 
 template <typename Dtype>
-__global__ void GradientreversalForward(const int nthreads, const Dtype* bottom_data, Dtype* top_data) 
+__global__ void GradientreversalForward(const int nthreads, const Dtype* bottom_data, Dtype* top_data)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     top_data[index] = bottom_data[index];
   }
@@ -25,7 +25,7 @@ __global__ void GradientreversalForward(const int nthreads, const Dtype* bottom_
 
 bool GradientreversalForwardLaucher(const float* bottom_data, const int size, float* top_data, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = size;
   cudaError_t err;
 
@@ -44,9 +44,9 @@ bool GradientreversalForwardLaucher(const float* bottom_data, const int size, fl
 
 
 template <typename Dtype>
-__global__ void GradientreversalBackward(const int nthreads, const Dtype* top_diff, const float lambda, Dtype* bottom_diff) 
+__global__ void GradientreversalBackward(const int nthreads, const Dtype* top_diff, const float lambda, Dtype* bottom_diff)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     bottom_diff[index] = -lambda * top_diff[index];
   }
@@ -56,7 +56,7 @@ __global__ void GradientreversalBackward(const int nthreads, const Dtype* top_di
 bool GradientreversalBackwardLaucher(const float* top_diff, const int size, const float lambda,
     float* bottom_diff, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = size;
   cudaError_t err;
 

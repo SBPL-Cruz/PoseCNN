@@ -15,11 +15,11 @@ using namespace tensorflow;
 
 template <typename Dtype>
 __global__ void ProjectForward(const int nthreads, const Dtype* bottom_data,
-    const Dtype* bottom_depth, const Dtype* bottom_meta_data, 
+    const Dtype* bottom_depth, const Dtype* bottom_meta_data,
     const int height, const int width, const int channels, const int num_meta_data,
-    const int grid_size, Dtype* top_data) 
+    const int grid_size, Dtype* top_data)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (n, h, w, c) coords in top data
     int n = index;
@@ -78,7 +78,7 @@ bool ProjectForwardLaucher(
     const int batch_size, const int height, const int width, const int channels, const int num_meta_data,
     const int grid_size, float* top_data, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * height * width * channels;
   cudaError_t err;
 
@@ -100,11 +100,11 @@ bool ProjectForwardLaucher(
 
 template <typename Dtype>
 __global__ void ProjectBackward(const int nthreads, const Dtype* top_diff,
-    const Dtype* bottom_depth, const Dtype* bottom_meta_data, 
+    const Dtype* bottom_depth, const Dtype* bottom_meta_data,
     const int height, const int width, const int channels, const int num_meta_data,
-    const int grid_size, const int kernel_size, const float threshold, Dtype* bottom_diff) 
+    const int grid_size, const int kernel_size, const float threshold, Dtype* bottom_diff)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (n, d, h, w, c) is an element in the output
     int n = index;
@@ -173,7 +173,7 @@ bool ProjectBackwardLaucher(const float* top_diff, const float* bottom_depth, co
     const int height, const int width, const int channels, const int num_meta_data, const int grid_size, const int kernel_size, const float threshold,
     float* bottom_diff, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * grid_size * grid_size * grid_size * channels;
   cudaError_t err;
 

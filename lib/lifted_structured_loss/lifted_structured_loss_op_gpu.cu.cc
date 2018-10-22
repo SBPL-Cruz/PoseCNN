@@ -21,7 +21,7 @@ inline
 cudaError_t checkCuda(cudaError_t result)
 {
   if (result != cudaSuccess) {
-    fprintf(stderr, "CUDA Runtime Error: %s\n", 
+    fprintf(stderr, "CUDA Runtime Error: %s\n",
             cudaGetErrorString(result));
     assert(result == cudaSuccess);
   }
@@ -30,9 +30,9 @@ cudaError_t checkCuda(cudaError_t result)
 
 template <typename Dtype>
 __global__ void compute_distance_label_matrix(const int nthreads, const Dtype* bottom_data, const int* pixel_indexes, const int* pixel_labels,
-    const int channels, const int num_pixels, Dtype* dis_mat, bool* label_mat) 
+    const int channels, const int num_pixels, Dtype* dis_mat, bool* label_mat)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (i, j) is the pair to consider
     int i = index / num_pixels;
@@ -49,7 +49,7 @@ __global__ void compute_distance_label_matrix(const int nthreads, const Dtype* b
     for (int c = 0; c < channels; c++)
       dis += (pi[c] - pj[c]) * (pi[c] - pj[c]);
     dis_mat[index] = sqrt(dis);
-    
+
     // label
     label_mat[index] = (pixel_labels[i] == pixel_labels[j]);
   }
@@ -57,9 +57,9 @@ __global__ void compute_distance_label_matrix(const int nthreads, const Dtype* b
 
 template <typename Dtype>
 __global__ void LiftedstructForward(const int nthreads, const Dtype* bottom_data, const int* pixel_indexes, const int* positive_indexes, const Dtype* dis_mat, const bool* label_mat,
-    const int channels, const int num_pixels, const float margin, Dtype* losses, Dtype* diffs) 
+    const int channels, const int num_pixels, const float margin, Dtype* losses, Dtype* diffs)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (i, j) is the pair to consider
     int num_positives = nthreads;
@@ -121,7 +121,7 @@ __global__ void LiftedstructForward(const int nthreads, const Dtype* bottom_data
       Dtype this_loss = max(soft_maximum + dist_pos, Dtype(0.0));
 
       // squared hinge
-      losses[index] = this_loss * this_loss; 
+      losses[index] = this_loss * this_loss;
 
       // 3. compute gradients
 
@@ -203,16 +203,16 @@ __global__ void LiftedstructForward(const int nthreads, const Dtype* bottom_data
     }
     else
     {
-      losses[index] = 0; 
+      losses[index] = 0;
     }
   }
 }
 
 template <typename Dtype>
 __global__ void sum_gradients(const int nthreads, const Dtype* diffs, const int* pixel_indexes,
-    const int channels, const int num_positives, Dtype* bottom_diff) 
+    const int channels, const int num_positives, Dtype* bottom_diff)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (i, j) is the pair to consider
     int n = index / channels;
@@ -257,7 +257,7 @@ bool LiftedstructForwardLaucher(
             break;
           }
         }
-      } 
+      }
     }
   }
 
@@ -305,27 +305,27 @@ bool LiftedstructForwardLaucher(
   int* pixel_indexes_device;
   int* pixel_labels_device;
   int* positive_indexes_device;
-  checkCuda(cudaMalloc(&pixel_indexes_device, num_pixels * sizeof(int))); 
+  checkCuda(cudaMalloc(&pixel_indexes_device, num_pixels * sizeof(int)));
   checkCuda(cudaMalloc(&pixel_labels_device, num_pixels * sizeof(int)));
   checkCuda(cudaMalloc(&positive_indexes_device, num_positives * sizeof(int)));
   cudaMemcpy(pixel_indexes_device, pixel_indexes.data(), num_pixels * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(pixel_labels_device, pixel_labels.data(), num_pixels * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(positive_indexes_device, positive_indexes.data(), num_positives * sizeof(int), cudaMemcpyHostToDevice);
 
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   cudaError_t err;
 
   // compute distance and label matrix
   const int output_size = num_pixels * num_pixels;
   float* dis_mat;
   bool* label_mat;
-  checkCuda(cudaMalloc(&dis_mat, num_pixels * num_pixels * sizeof(float))); 
+  checkCuda(cudaMalloc(&dis_mat, num_pixels * num_pixels * sizeof(float)));
   checkCuda(cudaMalloc(&label_mat, num_pixels * num_pixels * sizeof(bool)));
   compute_distance_label_matrix<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock,
                        kThreadsPerBlock, 0, d.stream()>>>(
       output_size, bottom_data, pixel_indexes_device, pixel_labels_device, channels, num_pixels, dis_mat, label_mat);
   cudaDeviceSynchronize();
-  
+
   err = cudaGetLastError();
   if(cudaSuccess != err)
   {
@@ -336,14 +336,14 @@ bool LiftedstructForwardLaucher(
   // compute loss matrix
   float* losses;
   float* diffs;
-  checkCuda(cudaMalloc((void **) &losses, num_positives * sizeof(float))); 
-  checkCuda(cudaMalloc((void **) &diffs, num_pixels * channels * num_positives *  sizeof(float))); 
+  checkCuda(cudaMalloc((void **) &losses, num_positives * sizeof(float)));
+  checkCuda(cudaMalloc((void **) &diffs, num_pixels * channels * num_positives *  sizeof(float)));
   cudaMemset(diffs, 0, num_pixels * channels * num_positives *  sizeof(float));
   LiftedstructForward<<<(num_positives + kThreadsPerBlock - 1) / kThreadsPerBlock,
                        kThreadsPerBlock, 0, d.stream()>>>(
       num_positives, bottom_data, pixel_indexes_device, positive_indexes_device, dis_mat, label_mat, channels, num_pixels, margin, losses, diffs);
   cudaDeviceSynchronize();
-  
+
   err = cudaGetLastError();
   if(cudaSuccess != err)
   {
@@ -386,19 +386,19 @@ bool LiftedstructForwardLaucher(
 
 template <typename Dtype>
 __global__ void LiftedstructBackward(const int nthreads, const Dtype* top_diff,
-    const Dtype* bottom_diff, Dtype* output) 
+    const Dtype* bottom_diff, Dtype* output)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     output[index] = top_diff[0] * bottom_diff[index];
   }
 }
 
- 
+
 bool LiftedstructBackwardLaucher(const float* top_diff, const float* bottom_diff, const int batch_size,
     const int height, const int width, const int channels, float* output, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * height * width * channels;
   cudaError_t err;
 

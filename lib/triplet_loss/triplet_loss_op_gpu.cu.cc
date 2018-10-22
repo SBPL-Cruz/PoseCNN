@@ -23,16 +23,16 @@ inline
 cudaError_t checkCuda(cudaError_t result)
 {
   if (result != cudaSuccess) {
-    fprintf(stderr, "CUDA Runtime Error: %s\n", 
+    fprintf(stderr, "CUDA Runtime Error: %s\n",
             cudaGetErrorString(result));
     assert(result == cudaSuccess);
   }
   return result;
 }
 
-__global__ void init_state(const int nthreads, unsigned int seed, curandState_t* states) 
+__global__ void init_state(const int nthreads, unsigned int seed, curandState_t* states)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     curand_init(seed, index, 0, &states[index]);
   }
@@ -40,9 +40,9 @@ __global__ void init_state(const int nthreads, unsigned int seed, curandState_t*
 
 template <typename Dtype>
 __global__ void TripletForward(const int nthreads, const Dtype* bottom_data, int* triplets,
-    const int channels, const float margin, Dtype* losses, Dtype* diffs) 
+    const int channels, const float margin, Dtype* losses, Dtype* diffs)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // compute the distances
     int index_i = triplets[index * 3 + 0];
@@ -79,9 +79,9 @@ __global__ void TripletForward(const int nthreads, const Dtype* bottom_data, int
 
 template <typename Dtype>
 __global__ void sum_gradients(const int nthreads, const Dtype* diffs, const int* triplets,
-    const int batch_size, const int height, const int width, Dtype* bottom_diff) 
+    const int batch_size, const int height, const int width, Dtype* bottom_diff)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     int c = index;
     int channels = nthreads;
@@ -143,7 +143,7 @@ bool TripletForwardLaucher(
         }
         if (predictions[index] == cls)
           label_indexes_correct[cls].push_back(index);
-      } 
+      }
     }
   }
 
@@ -240,21 +240,21 @@ bool TripletForwardLaucher(
         triplets[index * 3 + 0] = index;
         triplets[index * 3 + 1] = index_p;
         triplets[index * 3 + 2] = index_n;
-      } 
+      }
     }
   }
 
   // run kernels
   cudaError_t err;
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * height * width;
 
   // compute the loss matrix
   float* losses;
   float* diffs;
   int* triplets_device;
-  checkCuda(cudaMalloc((void **) &losses, output_size * sizeof(float))); 
-  checkCuda(cudaMalloc((void **) &diffs, output_size * channels * 3 * sizeof(float))); 
+  checkCuda(cudaMalloc((void **) &losses, output_size * sizeof(float)));
+  checkCuda(cudaMalloc((void **) &diffs, output_size * channels * 3 * sizeof(float)));
   checkCuda(cudaMalloc((void **) &triplets_device, output_size * 3 * sizeof(int)));
   cudaMemcpy(triplets_device, triplets.data(), output_size * 3 * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemset(diffs, 0, output_size * channels * 3 * sizeof(float));
@@ -263,7 +263,7 @@ bool TripletForwardLaucher(
                        kThreadsPerBlock, 0, d.stream()>>>(
       output_size, bottom_data, triplets_device, channels, margin, losses, diffs);
   cudaDeviceSynchronize();
-  
+
   err = cudaGetLastError();
   if(cudaSuccess != err)
   {
@@ -303,19 +303,19 @@ bool TripletForwardLaucher(
 
 template <typename Dtype>
 __global__ void TripletBackward(const int nthreads, const Dtype* top_diff,
-    const Dtype* bottom_diff, Dtype* output) 
+    const Dtype* bottom_diff, Dtype* output)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     output[index] = top_diff[0] * bottom_diff[index];
   }
 }
 
- 
+
 bool TripletBackwardLaucher(const float* top_diff, const float* bottom_diff, const int batch_size,
     const int height, const int width, const int channels, float* output, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * height * width * channels;
   cudaError_t err;
 

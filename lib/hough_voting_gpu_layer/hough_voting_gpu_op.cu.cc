@@ -6,7 +6,7 @@
 #include <cfloat>
 #include <time.h>
 #include <thrust/extrema.h>
-#include <Eigen/Geometry> 
+#include <Eigen/Geometry>
 #include <cublas_v2.h>
 #include "hough_voting_gpu_op.h"
 
@@ -41,7 +41,7 @@ __device__ inline float angle_distance(int cx, int cy, int x, int y, float u, fl
   return distance;
 }
 
-__device__ inline float angle_distance_label(int cx, int cy, int x, int y, float u, float v, 
+__device__ inline float angle_distance_label(int cx, int cy, int x, int y, float u, float v,
   int cls, const int height, const int width, const int* labelmap)
 {
   float dx = cx - x;
@@ -70,7 +70,7 @@ __device__ inline float angle_distance_label(int cx, int cy, int x, int y, float
   return distance;
 }
 
-__device__ inline float IoU(float* a, float* b) 
+__device__ inline float IoU(float* a, float* b)
 {
   float left = fmax(a[0], b[0]), right = fmin(a[2], b[2]);
   float top = fmax(a[1], b[1]), bottom = fmin(a[3], b[3]);
@@ -172,9 +172,9 @@ __device__ inline float compute_box_overlap(int cls, const float* extents, const
 }
 
 __global__ void compute_arrays_kernel(const int nthreads, const int* labelmap,
-    int* arrays, int* array_size, const int height, const int width) 
+    int* arrays, int* array_size, const int height, const int width)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     int cls = labelmap[index];
     if (cls > 0)
@@ -187,11 +187,11 @@ __global__ void compute_arrays_kernel(const int nthreads, const int* labelmap,
 }
 
 /*
-__global__ void compute_hough_kernel(const int nthreads, float* hough_space, float* hough_data, const int* labelmap, 
-    const float* vertmap, const float* extents, const float* meta_data, int* arrays, int* array_size, 
-    int* class_indexes, const int height, const int width, const int num_classes, const int count, const float inlierThreshold, const int skip_pixels) 
+__global__ void compute_hough_kernel(const int nthreads, float* hough_space, float* hough_data, const int* labelmap,
+    const float* vertmap, const float* extents, const float* meta_data, int* arrays, int* array_size,
+    int* class_indexes, const int height, const int width, const int num_classes, const int count, const float inlierThreshold, const int skip_pixels)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (cls, cx, cy) is an element in the hough space
     int ind = index / (height * width);
@@ -250,11 +250,11 @@ __global__ void compute_hough_kernel(const int nthreads, float* hough_space, flo
 
 */
 
-__global__ void compute_hough_kernel(const int nthreads, float* hough_space, float* hough_data, const int* labelmap, 
-    const float* vertmap, const float* extents, const float* meta_data, int* arrays, int* array_size, 
-    int* class_indexes, const int height, const int width, const int num_classes, const int count, const float inlierThreshold, const int skip_pixels) 
+__global__ void compute_hough_kernel(const int nthreads, float* hough_space, float* hough_data, const int* labelmap,
+    const float* vertmap, const float* extents, const float* meta_data, int* arrays, int* array_size,
+    int* class_indexes, const int height, const int width, const int num_classes, const int count, const float inlierThreshold, const int skip_pixels)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (cls, cx, cy) is an element in the hough space
     int ind = index / (height * width);
@@ -332,10 +332,10 @@ __global__ void compute_hough_kernel(const int nthreads, float* hough_space, flo
   }
 }
 
-__global__ void compute_max_indexes_kernel(const int nthreads, int* max_indexes, int index_size, int* num_max, float* hough_space, 
+__global__ void compute_max_indexes_kernel(const int nthreads, int* max_indexes, int index_size, int* num_max, float* hough_space,
   float* hough_data, int height, int width, float threshold, float perThreshold)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (ind, cx, cy) is an element in the hough space
     int ind = index / (height * width);
@@ -385,9 +385,9 @@ __global__ void compute_max_indexes_kernel(const int nthreads, int* max_indexes,
 
 __global__ void compute_rois_kernel(const int nthreads, float* top_box, float* top_pose, float* top_target, float* top_weight, int* top_domain,
     const float* extents, const float* meta_data, const float* gt, float* hough_space, float* hough_data, int* max_indexes, int* class_indexes,
-    int is_train, int batch_index, const int height, const int width, const int num_classes, const int num_gt, int* num_rois) 
+    int is_train, int batch_index, const int height, const int width, const int num_classes, const int num_gt, int* num_rois)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     float scale = 0.05;
     int max_index = max_indexes[index];
@@ -614,12 +614,12 @@ void set_gradients(float* top_label, float* top_vertex, int batch_size, int heig
 
 void HoughVotingLaucher(OpKernelContext* context,
     const int* labelmap, const float* vertmap, const float* extents, const float* meta_data, const float* gt,
-    const int batch_index, const int batch_size, const int height, const int width, const int num_classes, const int num_gt, 
-    const int is_train, const float inlierThreshold, const int labelThreshold, const float votingThreshold, const float perThreshold, 
-    const int skip_pixels, 
+    const int batch_index, const int batch_size, const int height, const int width, const int num_classes, const int num_gt,
+    const int is_train, const float inlierThreshold, const int labelThreshold, const float votingThreshold, const float perThreshold,
+    const int skip_pixels,
     float* top_box, float* top_pose, float* top_target, float* top_weight, int* top_domain, int* num_rois, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   int output_size;
   cudaError_t err;
 
@@ -693,7 +693,7 @@ void HoughVotingLaucher(OpKernelContext* context,
   TensorShapeUtils::MakeShape(hdims, 4, &output_shape_hough_space);
   Tensor hough_space_tensor;
   OP_REQUIRES_OK(context, context->allocate_temp(DT_FLOAT, output_shape_hough_space, &hough_space_tensor));
-  float* hough_space = hough_space_tensor.flat<float>().data(); 
+  float* hough_space = hough_space_tensor.flat<float>().data();
   if (cudaMemset(hough_space, 0, count * height * width * sizeof(float)) != cudaSuccess)
     fprintf(stderr, "reset error\n");
 
@@ -702,7 +702,7 @@ void HoughVotingLaucher(OpKernelContext* context,
   TensorShapeUtils::MakeShape(hdims, 4, &output_shape_hough_data);
   Tensor hough_data_tensor;
   OP_REQUIRES_OK(context, context->allocate_temp(DT_FLOAT, output_shape_hough_data, &hough_data_tensor));
-  float* hough_data = hough_data_tensor.flat<float>().data(); 
+  float* hough_data = hough_data_tensor.flat<float>().data();
   if (cudaMemset(hough_data, 0, count * height * width * 3 * sizeof(float)) != cudaSuccess)
     fprintf(stderr, "reset error\n");
 
@@ -735,7 +735,7 @@ void HoughVotingLaucher(OpKernelContext* context,
   TensorShapeUtils::MakeShape(&index_size, 1, &output_shape_max_indexes);
   Tensor max_indexes_tensor;
   OP_REQUIRES_OK(context, context->allocate_temp(DT_INT32, output_shape_max_indexes, &max_indexes_tensor));
-  int* max_indexes = max_indexes_tensor.flat<int>().data(); 
+  int* max_indexes = max_indexes_tensor.flat<int>().data();
   if (cudaMemset(max_indexes, 0, index_size * sizeof(int)) != cudaSuccess)
     fprintf(stderr, "reset error\n");
 
@@ -783,7 +783,7 @@ void HoughVotingLaucher(OpKernelContext* context,
         is_train, batch_index, height, width, num_classes, num_gt, num_rois);
     cudaThreadSynchronize();
   }
-  
+
   // clean up
   free(array_sizes_host);
   free(class_indexes_host);

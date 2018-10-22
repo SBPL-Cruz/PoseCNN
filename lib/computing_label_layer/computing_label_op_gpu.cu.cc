@@ -15,11 +15,11 @@ using namespace tensorflow;
 
 template <typename Dtype>
 __global__ void ComputingLabel(const int nthreads, const Dtype* bottom_data,
-    const Dtype* bottom_depth, const Dtype* bottom_meta_data, 
+    const Dtype* bottom_depth, const Dtype* bottom_meta_data,
     const int height, const int width, const int num_meta_data,
-    const int grid_size, const int num_classes, int* top_label) 
+    const int grid_size, const int num_classes, int* top_label)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (n, h, w) coords in top label
     int n = index;
@@ -93,7 +93,7 @@ bool ComputingLabelLaucher(
     const int batch_size, const int height, const int width, const int num_meta_data,
     const int grid_size, const int num_classes, int* top_label, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * height * width;
   cudaError_t err;
 

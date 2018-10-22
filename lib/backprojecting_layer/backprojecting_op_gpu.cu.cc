@@ -15,11 +15,11 @@ using namespace tensorflow;
 
 template <typename Dtype>
 __global__ void BackprojectForward(const int nthreads, const Dtype* bottom_data, const Dtype* bottom_label, const Dtype* bottom_depth,
-    const Dtype* bottom_meta_data, const Dtype* bottom_label_3d, 
+    const Dtype* bottom_meta_data, const Dtype* bottom_label_3d,
     const int height, const int width, const int channels, const int num_classes, const int num_meta_data,
-    const int grid_size, const int kernel_size, const float threshold, Dtype* top_data, Dtype* top_label, float* top_flag) 
+    const int grid_size, const int kernel_size, const float threshold, Dtype* top_data, Dtype* top_label, float* top_flag)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (n, d, h, w, c) is an element in the output
     int n = index;
@@ -45,7 +45,7 @@ __global__ void BackprojectForward(const int nthreads, const Dtype* bottom_data,
     Dtype X = d * meta_data[42] + meta_data[45];
     Dtype Y = h * meta_data[43] + meta_data[46];
     Dtype Z = w * meta_data[44] + meta_data[47];
-    
+
     // apply pose_world2live
     Dtype X1 = meta_data[18] * X + meta_data[19] * Y + meta_data[20] * Z + meta_data[21];
     Dtype Y1 = meta_data[22] * X + meta_data[23] * Y + meta_data[24] * Z + meta_data[25];
@@ -105,7 +105,7 @@ __global__ void BackprojectForward(const int nthreads, const Dtype* bottom_data,
       if (c == 0)
       {
         for(int cl = 0; cl < num_classes; cl++)
-          top_label[(n * grid_size * grid_size * grid_size + d * grid_size * grid_size + h * grid_size + w) * num_classes + cl] = 
+          top_label[(n * grid_size * grid_size * grid_size + d * grid_size * grid_size + h * grid_size + w) * num_classes + cl] =
             bottom_label_3d[(n * grid_size * grid_size * grid_size + d * grid_size * grid_size + h * grid_size + w) * num_classes + cl];
       }
     }
@@ -130,11 +130,11 @@ bool BackprojectForwardLaucher(
     const float* bottom_data, const float* bottom_label,
     const float* bottom_depth, const float* bottom_meta_data, const float* bottom_label_3d,
     const int batch_size, const int height, const int width,
-    const int channels, const int num_classes, const int num_meta_data, 
+    const int channels, const int num_classes, const int num_meta_data,
     const int grid_size, const int kernel_size, const float threshold,
     float* top_data, float* top_label, float* top_flag, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   cudaError_t err;
 
   const int output_size = batch_size * grid_size * grid_size * grid_size * channels;
@@ -157,11 +157,11 @@ bool BackprojectForwardLaucher(
 
 template <typename Dtype>
 __global__ void BackprojectBackward(const int nthreads, const Dtype* top_diff,
-    const Dtype* bottom_depth, const Dtype* bottom_meta_data, 
+    const Dtype* bottom_depth, const Dtype* bottom_meta_data,
     const int height, const int width, const int channels, const int num_meta_data,
-    const int grid_size, Dtype* bottom_diff) 
+    const int grid_size, Dtype* bottom_diff)
 {
-  CUDA_1D_KERNEL_LOOP(index, nthreads) 
+  CUDA_1D_KERNEL_LOOP(index, nthreads)
   {
     // (n, h, w, c) coords in bottom data
     int n = index;
@@ -216,12 +216,12 @@ __global__ void BackprojectBackward(const int nthreads, const Dtype* top_diff,
   }
 }
 
- 
-bool BackprojectBackwardLaucher(const float* top_diff, const float* bottom_depth, const float* bottom_meta_data, 
-    const int batch_size, const int height, const int width, const int channels, const int num_meta_data, const int grid_size, 
+
+bool BackprojectBackwardLaucher(const float* top_diff, const float* bottom_depth, const float* bottom_meta_data,
+    const int batch_size, const int height, const int width, const int channels, const int num_meta_data, const int grid_size,
     float* bottom_diff, const Eigen::GpuDevice& d)
 {
-  const int kThreadsPerBlock = 1024;
+  const int kThreadsPerBlock = 512;
   const int output_size = batch_size * height * width * channels;
   cudaError_t err;
 
