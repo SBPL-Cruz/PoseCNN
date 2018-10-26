@@ -1,0 +1,8 @@
+#! /usr/bin/env python
+
+import kinect_package.hello
+import kinect_package.listener
+
+
+if __name__ == '__main__':
+    kinect_package.hello.say('my friend!')

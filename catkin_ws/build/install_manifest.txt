@@ -1,0 +1,13 @@
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/_setup_util.py
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/env.sh
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/setup.bash
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/setup.sh
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/setup.zsh
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/.rosinstall
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/share/posecnn_kinect/msg/PoseCNNMsg.msg
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/lib/pkgconfig/posecnn_kinect.pc
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/share/posecnn_kinect/cmake/posecnn_kinectConfig.cmake
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/share/posecnn_kinect/cmake/posecnn_kinectConfig-version.cmake
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/share/posecnn_kinect/package.xml
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/lib/posecnn_kinect/hello
+/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/lib/posecnn_kinect/test_images
