@@ -41,7 +41,39 @@ if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
 endif()
 
 if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/posecnn_kinect/cmake" TYPE FILE FILES "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/build/posecnn_kinect/catkin_generated/installspace/posecnn_kinect-msg-paths.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel/include/posecnn_kinect")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/roseus/ros" TYPE DIRECTORY FILES "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel/share/roseus/ros/posecnn_kinect")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/common-lisp/ros" TYPE DIRECTORY FILES "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel/share/common-lisp/ros/posecnn_kinect")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/gennodejs/ros" TYPE DIRECTORY FILES "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel/share/gennodejs/ros/posecnn_kinect")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  execute_process(COMMAND "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/venv/bin/python" -m compileall "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel/lib/python2.7/dist-packages/posecnn_kinect")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/python2.7/dist-packages" TYPE DIRECTORY FILES "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel/lib/python2.7/dist-packages/posecnn_kinect")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig" TYPE FILE FILES "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/build/posecnn_kinect/catkin_generated/installspace/posecnn_kinect.pc")
+endif()
+
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/posecnn_kinect/cmake" TYPE FILE FILES "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/build/posecnn_kinect/catkin_generated/installspace/posecnn_kinect-msg-extras.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")

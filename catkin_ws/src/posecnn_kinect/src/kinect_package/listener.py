@@ -3,13 +3,137 @@ import message_filters
 import cv2
 import numpy as np
 from fcn.config import cfg
+from fcn.test import _extract_vertmap
 from utils.blob import im_list_to_blob, pad_im, unpad_im, add_noise
 from normals import gpu_normals
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 # from synthesizer.msg import PoseCNNMsg
-from PoseCNNMsg.msg import PoseCNNMsg
+from posecnn_kinect.msg import PoseCNNMsg
+
+# def vis_segmentations_vertmaps_detection(im, im_depth, im_labels, colors, center_map,
+#   labels, rois, poses, poses_new, intrinsic_matrix, num_classes, classes, points):
+#     """Visual debugging of detections."""
+#     import matplotlib.pyplot as plt
+#     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+#
+#     fig = plt.figure()
+#     canvas = FigureCanvas(fig)
+#
+#     # show image
+#     ax = fig.add_subplot(3, 3, 1)
+#     im = im[:, :, (2, 1, 0)]
+#     im = im.astype(np.uint8)
+#     plt.imshow(im)
+#     ax.set_title('input image')
+#
+#     # canvas.draw()
+#     # return np.fromstring(canvas.tostring_rgb(), dtype='uint8')
+#     # show depth
+#     ax = fig.add_subplot(3, 3, 2)
+#     plt.imshow(im_depth)
+#     ax.set_title('input depth')
+#
+#     # show class label
+#     ax = fig.add_subplot(3, 3, 3)
+#     plt.imshow(im_labels)
+#     ax.set_title('class labels')
+#
+#     if cfg.TEST.VERTEX_REG_2D:
+#         # show centers
+#         for i in xrange(rois.shape[0]):
+#             if rois[i, 1] == 0:
+#                 continue
+#             cx = (rois[i, 2] + rois[i, 4]) / 2
+#             cy = (rois[i, 3] + rois[i, 5]) / 2
+#             w = rois[i, 4] - rois[i, 2]
+#             h = rois[i, 5] - rois[i, 3]
+#             if not np.isinf(cx) and not np.isinf(cy):
+#                 plt.plot(cx, cy, 'yo')
+#
+#                 # show boxes
+#                 plt.gca().add_patch(
+#                     plt.Rectangle((cx-w/2, cy-h/2), w, h, fill=False,
+#                                    edgecolor='g', linewidth=3))
+#
+#     # show vertex map
+#     ax = fig.add_subplot(3, 3, 4)
+#     plt.imshow(center_map[:,:,0])
+#     ax.set_title('centers x')
+#
+#     ax = fig.add_subplot(3, 3, 5)
+#     plt.imshow(center_map[:,:,1])
+#     ax.set_title('centers y')
+#
+#     ax = fig.add_subplot(3, 3, 6)
+#     plt.imshow(center_map[:,:,2])
+#     ax.set_title('centers z')
+#
+#     # show projection of the poses
+#     if cfg.TEST.POSE_REG:
+#
+#         ax = fig.add_subplot(3, 3, 7, aspect='equal')
+#         plt.imshow(im)
+#         ax.invert_yaxis()
+#         for i in xrange(rois.shape[0]):
+#             cls = int(rois[i, 1])
+#             if cls > 0:
+#                 # extract 3D points
+#                 x3d = np.ones((4, points.shape[1]), dtype=np.float32)
+#                 x3d[0, :] = points[cls,:,0]
+#                 x3d[1, :] = points[cls,:,1]
+#                 x3d[2, :] = points[cls,:,2]
+#
+#                 # projection
+#                 RT = np.zeros((3, 4), dtype=np.float32)
+#                 RT[:3, :3] = quat2mat(poses[i, :4])
+#                 RT[:, 3] = poses[i, 4:7]
+#                 print classes[cls]
+#                 print RT
+#                 print '\n'
+#                 x2d = np.matmul(intrinsic_matrix, np.matmul(RT, x3d))
+#                 x2d[0, :] = np.divide(x2d[0, :], x2d[2, :])
+#                 x2d[1, :] = np.divide(x2d[1, :], x2d[2, :])
+#                 plt.plot(x2d[0, :], x2d[1, :], '.', color=np.divide(colors[cls], 255.0), alpha=0.5)
+#                 # plt.scatter(x2d[0, :], x2d[1, :], marker='o', color=np.divide(colors[cls], 255.0), s=10)
+#
+#         ax.set_title('projection of model points')
+#         ax.invert_yaxis()
+#         ax.set_xlim([0, im.shape[1]])
+#         ax.set_ylim([im.shape[0], 0])
+#
+#         if cfg.TEST.POSE_REFINE:
+#             ax = fig.add_subplot(3, 3, 8, aspect='equal')
+#             plt.imshow(im)
+#             ax.invert_yaxis()
+#             for i in xrange(rois.shape[0]):
+#                 cls = int(rois[i, 1])
+#                 if cls > 0:
+#                     # extract 3D points
+#                     x3d = np.ones((4, points.shape[1]), dtype=np.float32)
+#                     x3d[0, :] = points[cls,:,0]
+#                     x3d[1, :] = points[cls,:,1]
+#                     x3d[2, :] = points[cls,:,2]
+#
+#                     # projection
+#                     RT = np.zeros((3, 4), dtype=np.float32)
+#                     RT[:3, :3] = quat2mat(poses_new[i, :4])
+#                     RT[:, 3] = poses_new[i, 4:7]
+#                     print cls
+#                     print RT
+#                     print '\n'
+#                     x2d = np.matmul(intrinsic_matrix, np.matmul(RT, x3d))
+#                     x2d[0, :] = np.divide(x2d[0, :], x2d[2, :])
+#                     x2d[1, :] = np.divide(x2d[1, :], x2d[2, :])
+#                     plt.plot(x2d[0, :], x2d[1, :], '.', color=np.divide(colors[cls], 255.0), alpha=0.05)
+#
+#             ax.set_title('projection refined by ICP')
+#             ax.invert_yaxis()
+#             ax.set_xlim([0, im.shape[1]])
+#             ax.set_ylim([im.shape[0], 0])
+#
+#     plt.show()
 
 class ImageListener:
 
@@ -22,11 +146,13 @@ class ImageListener:
         self.cfg = cfg
         self.cv_bridge = CvBridge()
         self.count = 0
+        # self.axs = self.create_plots()
 
         # initialize a node
         rospy.init_node("image_listener")
-        # self.posecnn_pub = rospy.Publisher('posecnn_result', PoseCNNMsg, queue_size=1)
+        self.posecnn_pub = rospy.Publisher('posecnn_result', PoseCNNMsg, queue_size=1)
         self.label_pub = rospy.Publisher('posecnn_label', Image, queue_size=1)
+        self.center_pub = rospy.Publisher('posecnn_center', Image, queue_size=1)
         rgb_sub = message_filters.Subscriber('/camera/rgb/image_color', Image, queue_size=2)
         # depth_sub = message_filters.Subscriber('/camera/depth_registered/image', Image, queue_size=2)
         depth_sub = message_filters.Subscriber('/camera/depth_registered/sw_registered/image_rect_raw', Image, queue_size=2)
@@ -37,7 +163,7 @@ class ImageListener:
         ts.registerCallback(self.callback)
 
     def callback(self, rgb, depth):
-        print "test"
+        # print "test"
         if depth.encoding == '32FC1':
             depth_32 = self.cv_bridge.imgmsg_to_cv2(depth) * 1000
             depth_cv = np.array(depth_32, dtype=np.uint16)
@@ -56,8 +182,13 @@ class ImageListener:
 
         filename = 'images/%06d-depth.png' % self.count
         cv2.imwrite(filename, depth_cv)
-        print filename
+        # print filename
         self.count += 1
+
+        if (self.cfg.TEST.VERTEX_REG_2D and self.cfg.TEST.POSE_REFINE) or (self.cfg.TEST.VERTEX_REG_3D and self.cfg.TEST.POSE_REG):
+            import libsynthesizer
+            synthesizer = libsynthesizer.Synthesizer(self.cfg.CAD, self.cfg.POSE)
+            synthesizer.setup(self.cfg.TRAIN.SYN_WIDTH, self.cfg.TRAIN.SYN_HEIGHT)
 
         # run network
         labels, probs, vertex_pred, rois, poses = self.im_segment_single_frame(self.sess, self.net, im, depth_cv, self.meta_data, \
@@ -65,30 +196,157 @@ class ImageListener:
 
         im_label = self.imdb.labels_to_image(im, labels)
 
+        # added by Aditya
+        labels = unpad_im(labels, 16)
+        im_scale = self.cfg.TEST.SCALES_BASE[0]
+        im_depth = depth_cv
+
+        poses_new = []
+        poses_icp = []
+        if self.cfg.TEST.VERTEX_REG_2D:
+            if self.cfg.TEST.POSE_REG:
+                # pose refinement
+                fx = self.meta_data['intrinsic_matrix'][0, 0] * im_scale
+                fy = self.meta_data['intrinsic_matrix'][1, 1] * im_scale
+                px = self.meta_data['intrinsic_matrix'][0, 2] * im_scale
+                py = self.meta_data['intrinsic_matrix'][1, 2] * im_scale
+                factor = self.meta_data['factor_depth']
+                znear = 0.25
+                zfar = 6.0
+                poses_new = np.zeros((poses.shape[0], 7), dtype=np.float32)
+                poses_icp = np.zeros((poses.shape[0], 7), dtype=np.float32)
+                error_threshold = 0.01
+                if self.cfg.TEST.POSE_REFINE:
+                    labels_icp = labels.copy();
+                    rois_icp = rois
+                    if self.imdb.num_classes == 2:
+                        I = np.where(labels_icp > 0)
+                        labels_icp[I[0], I[1]] = self.imdb._cls_index
+                        rois_icp = rois.copy()
+                        rois_icp[:, 1] = self.imdb._cls_index
+                    im_depth = cv2.resize(im_depth, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_LINEAR)
+
+                    parameters = np.zeros((7, ), dtype=np.float32)
+                    parameters[0] = fx
+                    parameters[1] = fy
+                    parameters[2] = px
+                    parameters[3] = py
+                    parameters[4] = znear
+                    parameters[5] = zfar
+                    parameters[6] = factor
+
+                    height = labels_icp.shape[0]
+                    width = labels_icp.shape[1]
+                    num_roi = rois_icp.shape[0]
+                    channel_roi = rois_icp.shape[1]
+                    synthesizer.icp_python(labels_icp, im_depth, parameters, height, width, num_roi, channel_roi, \
+                                           rois_icp, poses, poses_new, poses_icp, error_threshold)
+
+
+        if self.cfg.TEST.VISUALIZE:
+            vertmap = _extract_vertmap(labels, vertex_pred, self.imdb._extents, self.imdb.num_classes)
+            # vis_segmentations_vertmaps_detection(im, im_depth, im_label, self.imdb._class_colors, vertmap,
+                # labels, rois, poses, poses_icp, self.meta_data['intrinsic_matrix'], self.imdb.num_classes, self.imdb._classes, self.imdb._points_all)
+
+        im_center = np.zeros((im.shape[0], im.shape[1], 3), np.uint8)
+        im_center.fill(255)
+        if cfg.TEST.VERTEX_REG_2D:
+            # show centers
+            for i in xrange(rois.shape[0]):
+                if rois[i, 1] == 0:
+                    continue
+                cx = (rois[i, 2] + rois[i, 4]) / 2
+                cy = (rois[i, 3] + rois[i, 5]) / 2
+                w = rois[i, 4] - rois[i, 2]
+                h = rois[i, 5] - rois[i, 3]
+                if not np.isinf(cx) and not np.isinf(cy):
+                    # plt.plot(cx, cy, 'yo')
+                    cv2.circle(im_center, (int(cx), int(cy)), 5, (0,0,255), -1)
+                    cv2.rectangle(im_center, (int(cx-w/2), int(cy-h/2)), (int(cx+w/2), int(cy+h/2)), (0,255,0), 5)
+
+                    # show boxes
+                    # plt.gca().add_patch(
+                        # plt.Rectangle((cx-w/2, cy-h/2), w, h, fill=False,
+                                       # edgecolor='g', linewidth=3))
         # publish
-        # msg = PoseCNNMsg()
-        # msg.height = int(im.shape[0])
-        # msg.width = int(im.shape[1])
-        # msg.roi_num = int(rois.shape[0])
-        # msg.roi_channel = int(rois.shape[1])
-        # msg.fx = float(self.meta_data['intrinsic_matrix'][0, 0])
-        # msg.fy = float(self.meta_data['intrinsic_matrix'][1, 1])
-        # msg.px = float(self.meta_data['intrinsic_matrix'][0, 2])
-        # msg.py = float(self.meta_data['intrinsic_matrix'][1, 2])
-        # msg.factor = float(self.meta_data['factor_depth'])
-        # msg.znear = float(0.25)
-        # msg.zfar = float(6.0)
-        # msg.label = self.cv_bridge.cv2_to_imgmsg(labels.astype(np.uint8), 'mono8')
-        # msg.depth = self.cv_bridge.cv2_to_imgmsg(depth_cv, 'mono16')
-        # msg.rois = rois.astype(np.float32).flatten().tolist()
-        # msg.poses = poses.astype(np.float32).flatten().tolist()
-        # self.posecnn_pub.publish(msg)
+        # print im_center.shape[0]
+        msg = PoseCNNMsg()
+        msg.height = int(im.shape[0])
+        msg.width = int(im.shape[1])
+        msg.roi_num = int(rois.shape[0])
+        msg.roi_channel = int(rois.shape[1])
+        msg.fx = float(self.meta_data['intrinsic_matrix'][0, 0])
+        msg.fy = float(self.meta_data['intrinsic_matrix'][1, 1])
+        msg.px = float(self.meta_data['intrinsic_matrix'][0, 2])
+        msg.py = float(self.meta_data['intrinsic_matrix'][1, 2])
+        msg.factor = float(self.meta_data['factor_depth'])
+        msg.znear = float(0.25)
+        msg.zfar = float(6.0)
+        msg.label = self.cv_bridge.cv2_to_imgmsg(labels.astype(np.uint8), 'mono8')
+        msg.center = self.cv_bridge.cv2_to_imgmsg(im_center)
+        msg.depth = self.cv_bridge.cv2_to_imgmsg(depth_cv, 'mono16')
+        msg.rois = rois.astype(np.float32).flatten().tolist()
+        msg.poses = poses.astype(np.float32).flatten().tolist()
+        self.posecnn_pub.publish(msg)
 
         label_msg = self.cv_bridge.cv2_to_imgmsg(im_label)
         label_msg.header.stamp = rospy.Time.now()
         label_msg.header.frame_id = rgb.header.frame_id
         label_msg.encoding = 'rgb8'
         self.label_pub.publish(label_msg)
+
+        center_msg = self.cv_bridge.cv2_to_imgmsg(im_center)
+        center_msg.header.stamp = rospy.Time.now()
+        center_msg.header.frame_id = rgb.header.frame_id
+        center_msg.encoding = 'rgb8'
+        self.center_pub.publish(center_msg)
+
+
+    def create_plots(self):
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+
+        # show image
+        ax1 = fig.add_subplot(3, 3, 1)
+        # im = im[:, :, (2, 1, 0)]
+        # im = im.astype(np.uint8)
+        # plt.imshow(im)
+        ax1.set_title('input image')
+
+        # show depth
+        ax2 = fig.add_subplot(3, 3, 2)
+        # plt.imshow(im_depth)
+        ax2.set_title('input depth')
+
+        # show class label
+        ax3 = fig.add_subplot(3, 3, 3)
+        # plt.imshow(im_labels)
+        ax3.set_title('class labels')
+
+            # show vertex map
+        ax4 = fig.add_subplot(3, 3, 4)
+        # plt.imshow(center_map[:,:,0])
+        ax4.set_title('centers x')
+
+        ax5 = fig.add_subplot(3, 3, 5)
+        # plt.imshow(center_map[:,:,1])
+        ax5.set_title('centers y')
+
+        ax6 = fig.add_subplot(3, 3, 6)
+        # plt.imshow(center_map[:,:,2])
+        ax6.set_title('centers z')
+
+        ax7 = fig.add_subplot(3, 3, 7, aspect='equal')
+        # plt.imshow(im)
+        ax7.invert_yaxis()
+
+        # plt.ion()
+        # plt.show()
+
+        return [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
+
+
+
 
     def get_image_blob(self, im, im_depth, meta_data):
         """Converts an image into a network input.
@@ -235,7 +493,7 @@ class ImageListener:
                 # rois = rois[keep, :]
                 # poses_init = poses_init[keep, :]
                 # poses_pred = poses_pred[keep, :]
-                print rois
+                # print rois
 
                 # combine poses
                 num = rois.shape[0]
@@ -247,8 +505,8 @@ class ImageListener:
             else:
                 labels_2d, probs, vertex_pred, rois, poses = \
                     sess.run([net.get_output('label_2d'), net.get_output('prob_normalized'), net.get_output('vertex_pred'), net.get_output('rois'), net.get_output('poses_init')])
-                print rois
-                print rois.shape
+                # print rois
+                # print rois.shape
                 # non-maximum suppression
                 # keep = nms(rois[:, 2:], 0.5)
                 # rois = rois[keep, :]

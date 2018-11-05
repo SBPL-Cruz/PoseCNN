@@ -8,7 +8,8 @@ from normals import gpu_normals
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
-from synthesizer.msg import PoseCNNMsg
+# from synthesizer.msg import PoseCNNMsg
+from PoseCNNMsg.msg import PoseCNNMsg
 
 class ImageListener:
 
@@ -24,11 +25,11 @@ class ImageListener:
 
         # initialize a node
         rospy.init_node("image_listener")
-        self.posecnn_pub = rospy.Publisher('posecnn_result', PoseCNNMsg, queue_size=1)
+        # self.posecnn_pub = rospy.Publisher('posecnn_result', PoseCNNMsg, queue_size=1)
         self.label_pub = rospy.Publisher('posecnn_label', Image, queue_size=1)
         rgb_sub = message_filters.Subscriber('/camera/rgb/image_color', Image, queue_size=2)
-        depth_sub = message_filters.Subscriber('/camera/depth_registered/image', Image, queue_size=2)
-        # depth_sub = message_filters.Subscriber('/camera/depth_registered/sw_registered/image_rect_raw', Image, queue_size=2)
+        # depth_sub = message_filters.Subscriber('/camera/depth_registered/image', Image, queue_size=2)
+        depth_sub = message_filters.Subscriber('/camera/depth_registered/sw_registered/image_rect_raw', Image, queue_size=2)
 
         queue_size = 1
         slop_seconds = 0.025
@@ -36,6 +37,7 @@ class ImageListener:
         ts.registerCallback(self.callback)
 
     def callback(self, rgb, depth):
+        print "test"
         if depth.encoding == '32FC1':
             depth_32 = self.cv_bridge.imgmsg_to_cv2(depth) * 1000
             depth_cv = np.array(depth_32, dtype=np.uint16)
@@ -64,23 +66,23 @@ class ImageListener:
         im_label = self.imdb.labels_to_image(im, labels)
 
         # publish
-        msg = PoseCNNMsg()
-        msg.height = int(im.shape[0])
-        msg.width = int(im.shape[1])
-        msg.roi_num = int(rois.shape[0])
-        msg.roi_channel = int(rois.shape[1])
-        msg.fx = float(self.meta_data['intrinsic_matrix'][0, 0])
-        msg.fy = float(self.meta_data['intrinsic_matrix'][1, 1])
-        msg.px = float(self.meta_data['intrinsic_matrix'][0, 2])
-        msg.py = float(self.meta_data['intrinsic_matrix'][1, 2])
-        msg.factor = float(self.meta_data['factor_depth'])
-        msg.znear = float(0.25)
-        msg.zfar = float(6.0)
-        msg.label = self.cv_bridge.cv2_to_imgmsg(labels.astype(np.uint8), 'mono8')
-        msg.depth = self.cv_bridge.cv2_to_imgmsg(depth_cv, 'mono16')
-        msg.rois = rois.astype(np.float32).flatten().tolist()
-        msg.poses = poses.astype(np.float32).flatten().tolist()
-        self.posecnn_pub.publish(msg)
+        # msg = PoseCNNMsg()
+        # msg.height = int(im.shape[0])
+        # msg.width = int(im.shape[1])
+        # msg.roi_num = int(rois.shape[0])
+        # msg.roi_channel = int(rois.shape[1])
+        # msg.fx = float(self.meta_data['intrinsic_matrix'][0, 0])
+        # msg.fy = float(self.meta_data['intrinsic_matrix'][1, 1])
+        # msg.px = float(self.meta_data['intrinsic_matrix'][0, 2])
+        # msg.py = float(self.meta_data['intrinsic_matrix'][1, 2])
+        # msg.factor = float(self.meta_data['factor_depth'])
+        # msg.znear = float(0.25)
+        # msg.zfar = float(6.0)
+        # msg.label = self.cv_bridge.cv2_to_imgmsg(labels.astype(np.uint8), 'mono8')
+        # msg.depth = self.cv_bridge.cv2_to_imgmsg(depth_cv, 'mono16')
+        # msg.rois = rois.astype(np.float32).flatten().tolist()
+        # msg.poses = poses.astype(np.float32).flatten().tolist()
+        # self.posecnn_pub.publish(msg)
 
         label_msg = self.cv_bridge.cv2_to_imgmsg(im_label)
         label_msg.header.stamp = rospy.Time.now()
@@ -161,7 +163,7 @@ class ImageListener:
         blob = im_list_to_blob(processed_ims, 3)
         blob_rescale = im_list_to_blob(processed_ims_rescale, 3)
         blob_depth = im_list_to_blob(processed_ims_depth, 3)
-        
+
         return blob, blob_rescale, blob_depth, blob_normal, np.array(im_scale_factors)
 
 

@@ -3,6 +3,6 @@ prefix=/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install
 Name: posecnn_kinect
 Description: Description of posecnn_kinect
 Version: 0.0.0
-Cflags: 
+Cflags: -I/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/include
 Libs: -L/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install/lib 
 Requires: 

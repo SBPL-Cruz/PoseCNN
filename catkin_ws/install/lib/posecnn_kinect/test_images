@@ -10,7 +10,7 @@
 """Test a FCN on an image database."""
 
 import kinect_package._init_paths
-# from fcn.config import cfg, cfg_from_file
+from fcn.config import cfg, cfg_from_file
 from datasets.factory import get_imdb
 import argparse
 import pprint
@@ -20,6 +20,7 @@ import os.path as osp
 import numpy as np
 import rospy
 from kinect_package.listener import ImageListener
+# from matplotlib import pyplot as plt
 
 def parse_args():
     """
@@ -120,6 +121,8 @@ if __name__ == '__main__':
     # image listener
     listener = ImageListener(sess, network, imdb, meta_data, cfg)
     try:
+        # plt.ion()
+        # plt.show()
         rospy.spin()
     except KeyboardInterrupt:
         print "Shutting down"

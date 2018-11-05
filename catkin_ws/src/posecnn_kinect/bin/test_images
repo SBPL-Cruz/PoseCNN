@@ -20,6 +20,7 @@ import os.path as osp
 import numpy as np
 import rospy
 from kinect_package.listener import ImageListener
+# from matplotlib import pyplot as plt
 
 def parse_args():
     """
@@ -120,6 +121,8 @@ if __name__ == '__main__':
     # image listener
     listener = ImageListener(sess, network, imdb, meta_data, cfg)
     try:
+        # plt.ion()
+        # plt.show()
         rospy.spin()
     except KeyboardInterrupt:
         print "Shutting down"

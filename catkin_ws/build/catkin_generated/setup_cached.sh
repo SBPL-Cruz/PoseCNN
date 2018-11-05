@@ -7,5 +7,4 @@
 # new environment variables
 
 # modified environment variables
-export PATH="/opt/ros/kinetic/bin:/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/venv/bin:/usr/local/cuda-8.0/bin:/home/aditya/bin:/home/aditya/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
 export PWD="/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/build"

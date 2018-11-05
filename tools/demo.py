@@ -84,17 +84,18 @@ if __name__ == '__main__':
     imdb = get_imdb(args.imdb_name)
 
     # construct the filenames
-    root = 'data/demo_images/'
+    # root = 'data/demo_images/'
+    # root = 'data/024_bowl_images/'
+    # root = 'data/037_scissors/'
+    root = 'data/real_images/004_sugar_box/'
     num = 5
     rgb_filenames = []
     depth_filenames = []
     for i in xrange(num):
-        filename = root + '{:06d}-color.png'.format(i+1)
+        filename = root + '{:01d}.jpg'.format(i+1)
         print filename
         rgb_filenames.append(filename)
-        filename = root + '{:06d}-depth.png'.format(i+1)
-        print filename
-        depth_filenames.append(filename)
+        depth_filenames.append('.')
 
     # construct meta data
     K = np.array([[1066.778, 0, 312.9869], [0, 1067.487, 241.3109], [0, 0, 1]])

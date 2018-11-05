@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
+  cv_bridge
   message_generation
 )
 
@@ -50,7 +52,7 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-    PoseCNNMsg.msg
+   PoseCNNMsg.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -68,10 +70,11 @@ catkin_python_setup()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  sensor_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -180,10 +183,11 @@ include_directories(
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+#  src/utils/cython_bbox.so
+#  src/normals/gpu_normals.so
+#  # myfile2
+#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+#)
 
 #############
 ## Testing ##
