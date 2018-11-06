@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(synthesizer)
 
-set(xFusion_ROOT "/home/yuxiang/Projects/Deep_Pose/lib/kinect_fusion")
+set(xFusion_ROOT /media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/lib/kinect_fusion)
 set(xFusion_INCLUDE_DIRS ${xFusion_ROOT}/include)
 set(xFusion_LIBRARY_DIRS ${xFusion_ROOT}/build)
 set(xFusion_LIBRARIES kfusion)
@@ -148,7 +148,7 @@ include_directories(
   ${SUITESPARSE_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
-  ${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc
+  #${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc
   ${catkin_INCLUDE_DIRS}
 )
 

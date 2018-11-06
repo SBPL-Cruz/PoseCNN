@@ -10,6 +10,7 @@ float32 znear
 float32 zfar
 float32 factor
 sensor_msgs/Image label
+sensor_msgs/Image center
 sensor_msgs/Image depth
 float32[] rois
 float32[] poses

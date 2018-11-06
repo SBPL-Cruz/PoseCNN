@@ -10,7 +10,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 add_definitions(-std=c++11)
 add_definitions(-Wall)
 add_definitions(-fPIC)
-#add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
 include(${CMAKE_SOURCE_DIR}/cmake/FindNLopt.cmake)
 
@@ -28,8 +28,8 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-set(BOOST_INCLUDE_DIRS "/usr/local/include")
-set(BOOST_LIBRARY_DIRS "/usr/local/lib/boost")
+set(BOOST_INCLUDE_DIRS "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/boost_1_67_0")
+set(BOOST_LIBRARY_DIRS "/media/aditya/A69AFABA9AFA85D9/Cruzr/code/boost_1_67_0/stage/lib")
 
 set(xFusion_ROOT ${PROJECT_SOURCE_DIR}/../kinect_fusion)
 set(xFusion_INCLUDE_DIRS ${xFusion_ROOT}/include)
@@ -53,7 +53,7 @@ include_directories(${Pangolin_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS}
                     ${PCL_INCLUDE_DIRS}
                     ${PROJECT_SOURCE_DIR}/include
-                    ${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc
+                    #${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc
                     ${BOOST_INCLUDE_DIRS})
 
 link_directories(${Pangolin_LIBRARY_DIRS}
@@ -70,12 +70,18 @@ link_libraries(${Pangolin_LIBRARIES}
                ${OpenCV_LIBS}
                ${NLOPT_LIBRARIES}
                ${PCL_LIBRARIES}
-               boost_python
-               boost_numpy
+               boost_python27
+               boost_numpy27
                assimp
                util)
 
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-std=c++11;--expt-relaxed-constexpr;-O3;-arch=sm_61;--expt-extended-lambda;--verbose;")
+
+add_definitions(-Wno-unused-result)
+add_definitions(-Wno-unused-but-set-variable)
+add_definitions(-Wno-unused-variable)
+add_definitions(-Wno-reorder)
+add_definitions(-Wno-deprecated-declarations)
 
 cuda_add_library(
   synthesizer

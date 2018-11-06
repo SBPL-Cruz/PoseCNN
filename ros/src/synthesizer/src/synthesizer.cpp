@@ -13,7 +13,7 @@ Synthesizer::Synthesizer(std::string model_file, std::string pose_file)
 
 void Synthesizer::setup(int width, int height)
 {
-  create_window(width, height);
+  // create_window(width, height);
 
   loadModels(model_file_);
   std::cout << "loaded models" << std::endl;
@@ -185,7 +185,7 @@ aiMesh* Synthesizer::loadTexturedMesh(const std::string filename, std::string & 
     std::cout << scene->mNumMaterials << " materials" << std::endl;
 
     std::string textureName = filename.substr(0,filename.find_last_of('/')+1);
-    for (int i = 0; i < scene->mNumMaterials; ++i) 
+    for (int i = 0; i < scene->mNumMaterials; ++i)
     {
         aiMaterial * material = scene->mMaterials[i];
         std::cout << "diffuse: " << material->GetTextureCount(aiTextureType_DIFFUSE) << std::endl;
@@ -193,7 +193,7 @@ aiMesh* Synthesizer::loadTexturedMesh(const std::string filename, std::string & 
         std::cout << "ambient: " << material->GetTextureCount(aiTextureType_AMBIENT) << std::endl;
         std::cout << "shininess: " << material->GetTextureCount(aiTextureType_SHININESS) << std::endl;
 
-        if (material->GetTextureCount(aiTextureType_DIFFUSE)) 
+        if (material->GetTextureCount(aiTextureType_DIFFUSE))
         {
             aiString path;
             material->GetTexture(aiTextureType_DIFFUSE,0,&path);
@@ -274,7 +274,7 @@ void Synthesizer::initializeBuffers(int model_index, aiMesh* assimpMesh, std::st
     {
       // vertex colors
       std::vector<float3> colors3(assimpMesh->mNumVertices);
-      for (std::size_t i = 0; i < assimpMesh->mNumVertices; i++) 
+      for (std::size_t i = 0; i < assimpMesh->mNumVertices; i++)
       {
           aiColor4D & color = assimpMesh->mColors[0][i];
           colors3[i] = make_float3(color.r, color.g, color.b);
@@ -328,13 +328,13 @@ void Synthesizer::refinePose(int width, int height, int objID, float znear, floa
       vec[5] = 0;
       vec[6] = 0;
 
-      // optimization 
+      // optimization
       float energy = poseWithOpt(vec, data, iterations);
       Eigen::Quaternionf quaternion(vec[0], vec[1], vec[2], vec[3]);
       Sophus::SE3f::Point translation(vec[4], vec[5], vec[6]);
       Sophus::SE3f update(quaternion, translation);
       T_co = update * T_co;
-      break;     
+      break;
     }
     case 1:
     {
@@ -349,8 +349,8 @@ void Synthesizer::refinePose(int width, int height, int objID, float znear, floa
 
 
 // ICP
-void Synthesizer::refineDistance(const int* labelmap, unsigned char* depth, int height, int width, float fx, float fy, float px, float py, 
-  float znear, float zfar, float factor, int num_roi, int channel_roi, const float* rois, const float* poses, 
+void Synthesizer::refineDistance(const int* labelmap, unsigned char* depth, int height, int width, float fx, float fy, float px, float py,
+  float znear, float zfar, float factor, int num_roi, int channel_roi, const float* rois, const float* poses,
   float* outputs, float* outputs_icp, std::vector<std::vector<geometry_msgs::Point32> >& output_points, float maxError)
 {
   int iterations;
@@ -391,7 +391,7 @@ void Synthesizer::refineDistance(const int* labelmap, unsigned char* depth, int 
 
     // pose
     const float* pose = poses + i * 7;
-    std::cout << "quaternion " << pose[0] << " " << pose[1] << " " << pose[2] << " " << pose[3] << std::endl;
+    std::cout << "quaternion refineDistance" << pose[0] << " " << pose[1] << " " << pose[2] << " " << pose[3] << std::endl;
     Eigen::Quaternionf quaternion(pose[0], pose[1], pose[2], pose[3]);
     Sophus::SE3f::Point translation(pose[4], pose[5], pose[6]);
     Sophus::SE3f T_co(quaternion, translation);
@@ -480,13 +480,13 @@ void Synthesizer::refineDistance(const int* labelmap, unsigned char* depth, int 
     outputs[i * 7 + 6] = T_co.translation()(2);
   }
 
-  visualizePose(height, width, fx, fy, px, py, znear, zfar, rois, outputs, num_roi, channel_roi);
+  // visualizePose(height, width, fx, fy, px, py, znear, zfar, rois, outputs, num_roi, channel_roi);
 }
 
 
 
-void Synthesizer::solveICP(const int* labelmap, unsigned char* depth, int height, int width, float fx, float fy, float px, float py, 
-  float znear, float zfar, float factor, int num_roi, int channel_roi, const float* rois, const float* poses, 
+void Synthesizer::solveICP(const int* labelmap, unsigned char* depth, int height, int width, float fx, float fy, float px, float py,
+  float znear, float zfar, float factor, int num_roi, int channel_roi, const float* rois, const float* poses,
   float* outputs, float* outputs_icp, float maxError)
 {
   int iterations;
@@ -531,7 +531,7 @@ void Synthesizer::solveICP(const int* labelmap, unsigned char* depth, int height
 
     // pose
     const float* pose = poses + i * 7;
-    std::cout << "quaternion " << pose[0] << " " << pose[1] << " " << pose[2] << " " << pose[3] << std::endl;
+    std::cout << "quaternion solveICP" << pose[0] << " " << pose[1] << " " << pose[2] << " " << pose[3] << std::endl;
     Eigen::Quaternionf quaternion(pose[0], pose[1], pose[2], pose[3]);
     Sophus::SE3f::Point translation(pose[4], pose[5], pose[6]);
     Sophus::SE3f T_co(quaternion, translation);
@@ -713,7 +713,7 @@ void Synthesizer::solveICP(const int* labelmap, unsigned char* depth, int height
 
     T_co.translation()(2) = Tz + 0.05;
     hyps.push_back(T_co);
-    
+
     iterations = 8;
     for (int j = 0; j < hyps.size(); j++)
     {
@@ -792,7 +792,7 @@ void Synthesizer::solveICP(const int* labelmap, unsigned char* depth, int height
     outputs_icp[i * 7 + 6] = translation_new(2);
   }
 
-  visualizePose(height, width, fx, fy, px, py, znear, zfar, rois, outputs, num_roi, channel_roi);
+  // visualizePose(height, width, fx, fy, px, py, znear, zfar, rois, outputs, num_roi, channel_roi);
 }
 
 
@@ -930,13 +930,13 @@ static double optEnergy(const std::vector<double> &pose, std::vector<double> &gr
 double Synthesizer::poseWithOpt(std::vector<double> & vec, DataForOpt data, int iterations)
 {
   // set up optimization algorithm (gradient free)
-  nlopt::opt opt(nlopt::LN_NELDERMEAD, 7); 
+  nlopt::opt opt(nlopt::LN_NELDERMEAD, 7);
 
-  // set optimization bounds 
+  // set optimization bounds
   double rotRange = 0.1;
   double tRangeXY = 0.01;
   double tRangeZ = 0.1; // pose uncertainty is larger in Z direction
-	
+
   std::vector<double> lb(7);
   lb[0] = vec[0] - rotRange;
   lb[1] = vec[1] - rotRange;
@@ -946,7 +946,7 @@ double Synthesizer::poseWithOpt(std::vector<double> & vec, DataForOpt data, int 
   lb[5] = vec[5] - tRangeXY;
   lb[6] = vec[6] - tRangeZ;
   opt.set_lower_bounds(lb);
-      
+
   std::vector<double> ub(7);
   ub[0] = vec[0] + rotRange;
   ub[1] = vec[1] + rotRange;
@@ -956,7 +956,7 @@ double Synthesizer::poseWithOpt(std::vector<double> & vec, DataForOpt data, int 
   ub[5] = vec[5] + tRangeXY;
   ub[6] = vec[6] + tRangeZ;
   opt.set_upper_bounds(ub);
-      
+
   // configure NLopt
   opt.set_min_objective(optEnergy, &data);
   opt.set_maxeval(iterations);
@@ -966,6 +966,6 @@ double Synthesizer::poseWithOpt(std::vector<double> & vec, DataForOpt data, int 
   nlopt::result result = opt.optimize(vec, energy);
 
   // std::cout << "distance after optimization: " << energy << std::endl;
-   
+
   return energy;
 }

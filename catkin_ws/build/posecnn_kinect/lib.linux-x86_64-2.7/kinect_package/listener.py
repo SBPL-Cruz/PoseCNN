@@ -185,10 +185,10 @@ class ImageListener:
         # print filename
         self.count += 1
 
-        if (self.cfg.TEST.VERTEX_REG_2D and self.cfg.TEST.POSE_REFINE) or (self.cfg.TEST.VERTEX_REG_3D and self.cfg.TEST.POSE_REG):
-            import libsynthesizer
-            synthesizer = libsynthesizer.Synthesizer(self.cfg.CAD, self.cfg.POSE)
-            synthesizer.setup(self.cfg.TRAIN.SYN_WIDTH, self.cfg.TRAIN.SYN_HEIGHT)
+        # if (self.cfg.TEST.VERTEX_REG_2D and self.cfg.TEST.POSE_REFINE) or (self.cfg.TEST.VERTEX_REG_3D and self.cfg.TEST.POSE_REG):
+        #     import libsynthesizer
+        #     synthesizer = libsynthesizer.Synthesizer(self.cfg.CAD, self.cfg.POSE)
+        #     synthesizer.setup(self.cfg.TRAIN.SYN_WIDTH, self.cfg.TRAIN.SYN_HEIGHT)
 
         # run network
         labels, probs, vertex_pred, rois, poses = self.im_segment_single_frame(self.sess, self.net, im, depth_cv, self.meta_data, \
@@ -201,46 +201,46 @@ class ImageListener:
         im_scale = self.cfg.TEST.SCALES_BASE[0]
         im_depth = depth_cv
 
-        poses_new = []
-        poses_icp = []
-        if self.cfg.TEST.VERTEX_REG_2D:
-            if self.cfg.TEST.POSE_REG:
-                # pose refinement
-                fx = self.meta_data['intrinsic_matrix'][0, 0] * im_scale
-                fy = self.meta_data['intrinsic_matrix'][1, 1] * im_scale
-                px = self.meta_data['intrinsic_matrix'][0, 2] * im_scale
-                py = self.meta_data['intrinsic_matrix'][1, 2] * im_scale
-                factor = self.meta_data['factor_depth']
-                znear = 0.25
-                zfar = 6.0
-                poses_new = np.zeros((poses.shape[0], 7), dtype=np.float32)
-                poses_icp = np.zeros((poses.shape[0], 7), dtype=np.float32)
-                error_threshold = 0.01
-                if self.cfg.TEST.POSE_REFINE:
-                    labels_icp = labels.copy();
-                    rois_icp = rois
-                    if self.imdb.num_classes == 2:
-                        I = np.where(labels_icp > 0)
-                        labels_icp[I[0], I[1]] = self.imdb._cls_index
-                        rois_icp = rois.copy()
-                        rois_icp[:, 1] = self.imdb._cls_index
-                    im_depth = cv2.resize(im_depth, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_LINEAR)
-
-                    parameters = np.zeros((7, ), dtype=np.float32)
-                    parameters[0] = fx
-                    parameters[1] = fy
-                    parameters[2] = px
-                    parameters[3] = py
-                    parameters[4] = znear
-                    parameters[5] = zfar
-                    parameters[6] = factor
-
-                    height = labels_icp.shape[0]
-                    width = labels_icp.shape[1]
-                    num_roi = rois_icp.shape[0]
-                    channel_roi = rois_icp.shape[1]
-                    synthesizer.icp_python(labels_icp, im_depth, parameters, height, width, num_roi, channel_roi, \
-                                           rois_icp, poses, poses_new, poses_icp, error_threshold)
+        # poses_new = []
+        # poses_icp = []
+        # if self.cfg.TEST.VERTEX_REG_2D:
+        #     if self.cfg.TEST.POSE_REG:
+        #         # pose refinement
+        #         fx = self.meta_data['intrinsic_matrix'][0, 0] * im_scale
+        #         fy = self.meta_data['intrinsic_matrix'][1, 1] * im_scale
+        #         px = self.meta_data['intrinsic_matrix'][0, 2] * im_scale
+        #         py = self.meta_data['intrinsic_matrix'][1, 2] * im_scale
+        #         factor = self.meta_data['factor_depth']
+        #         znear = 0.25
+        #         zfar = 6.0
+        #         poses_new = np.zeros((poses.shape[0], 7), dtype=np.float32)
+        #         poses_icp = np.zeros((poses.shape[0], 7), dtype=np.float32)
+        #         error_threshold = 0.01
+        #         if self.cfg.TEST.POSE_REFINE:
+        #             labels_icp = labels.copy();
+        #             rois_icp = rois
+        #             if self.imdb.num_classes == 2:
+        #                 I = np.where(labels_icp > 0)
+        #                 labels_icp[I[0], I[1]] = self.imdb._cls_index
+        #                 rois_icp = rois.copy()
+        #                 rois_icp[:, 1] = self.imdb._cls_index
+        #             im_depth = cv2.resize(im_depth, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_LINEAR)
+        #
+        #             parameters = np.zeros((7, ), dtype=np.float32)
+        #             parameters[0] = fx
+        #             parameters[1] = fy
+        #             parameters[2] = px
+        #             parameters[3] = py
+        #             parameters[4] = znear
+        #             parameters[5] = zfar
+        #             parameters[6] = factor
+        #
+        #             height = labels_icp.shape[0]
+        #             width = labels_icp.shape[1]
+        #             num_roi = rois_icp.shape[0]
+        #             channel_roi = rois_icp.shape[1]
+        #             synthesizer.icp_python(labels_icp, im_depth, parameters, height, width, num_roi, channel_roi, \
+        #                                    rois_icp, poses, poses_new, poses_icp, error_threshold)
 
 
         if self.cfg.TEST.VISUALIZE:
@@ -261,8 +261,8 @@ class ImageListener:
                 h = rois[i, 5] - rois[i, 3]
                 if not np.isinf(cx) and not np.isinf(cy):
                     # plt.plot(cx, cy, 'yo')
-                    cv2.circle(im_center, (int(cx), int(cy)), 5, (0,0,255))
-                    cv2.rectangle(im_center, (int(cx-w/2), int(cy-h/2)), (int(cx+w/2), int(cy+h/2)), (0,255,0))
+                    cv2.circle(im_center, (int(cx), int(cy)), 5, (0,0,255), -1)
+                    cv2.rectangle(im_center, (int(cx-w/2), int(cy-h/2)), (int(cx+w/2), int(cy+h/2)), (0,255,0), 5)
 
                     # show boxes
                     # plt.gca().add_patch(
