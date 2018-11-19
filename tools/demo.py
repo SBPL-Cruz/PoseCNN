@@ -84,22 +84,44 @@ if __name__ == '__main__':
     imdb = get_imdb(args.imdb_name)
 
     # construct the filenames
-    # root = 'data/demo_images/'
+
     # root = 'data/024_bowl_images/'
     # root = 'data/037_scissors/'
-    root = 'data/real_images/004_sugar_box/'
-    num = 5
+    # root = 'data/real_images/004_sugar_box/'
+    num = 1
     rgb_filenames = []
     depth_filenames = []
+    # for i in xrange(num):
+    #     filename = root + '{:01d}.jpg'.format(i+1)
+    #     print filename
+    #     rgb_filenames.append(filename)
+    #     depth_filenames.append('.')
+
+    # root = 'data/demo_images/'
+    # for i in xrange(num):
+    #     filename = root + '{:06d}-color.png'.format(i+1)
+    #     print filename
+    #     rgb_filenames.append(filename)
+    #     filename = root + '{:06d}-depth.png'.format(i+1)
+    #     print filename
+    #     depth_filenames.append(filename)
+
+    num = 1
+    root = 'data/real_images/scene/scene5/'
     for i in xrange(num):
-        filename = root + '{:01d}.jpg'.format(i+1)
+        filename = root + '{:01d}2.png'.format(i + 1)
         print filename
         rgb_filenames.append(filename)
-        depth_filenames.append('.')
+        filename = root + '{:01d}1.png'.format(i+1)
+        # depth_filenames.append('.')
+        print filename
+        depth_filenames.append(filename)
 
     # construct meta data
-    K = np.array([[1066.778, 0, 312.9869], [0, 1067.487, 241.3109], [0, 0, 1]])
-    meta_data = dict({'intrinsic_matrix': K, 'factor_depth': 10000.0})
+    # K = np.array([[1066.778, 0, 312.9869], [0, 1067.487, 241.3109], [0, 0, 1]])
+    K = np.array([[562.513801, 0.000000, 307.387919], [0.000000, 566.935402, 290.774702], [0, 0, 1]])
+
+    meta_data = dict({'intrinsic_matrix': K, 'factor_depth': 1000.0})
     print meta_data
 
     cfg.GPU_ID = args.gpu_id

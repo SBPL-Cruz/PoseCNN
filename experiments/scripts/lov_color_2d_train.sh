@@ -21,3 +21,4 @@ time ./tools/train_net.py --gpu 0 \
   --cad data/LOV/models.txt \
   --pose data/LOV/poses.txt \
   --iters 160000
+  # --ckpt data/demo_models/vgg16_fcn_color_single_frame_2d_pose_add_lov_iter_160000.ckpt

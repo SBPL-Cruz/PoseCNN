@@ -182,11 +182,12 @@ void Synthesizer::loadModels(const std::string filename)
 
   for (int m = 0; m < num_models; m++)
   {
-    bool is_textured;
-    if (texture_names[m] == "")
-      is_textured = false;
-    else
-      is_textured = true;
+    bool is_textured = false;
+    // Aditya
+    // if (texture_names[m] == "")
+    //   is_textured = false;
+    // else
+    //   is_textured = true;
     is_textured_[m] = is_textured;
 
     initializeBuffers(m, assimpMeshes_[m], texture_names[m], texturedVertices_[m], canonicalVertices_[m], vertexColors_[m], vertexNormals_[m],
@@ -214,7 +215,7 @@ aiMesh* Synthesizer::loadTexturedMesh(const std::string filename, std::string & 
     std::cout << scene->mNumMaterials << " materials" << std::endl;
 
     std::string textureName = filename.substr(0,filename.find_last_of('/')+1);
-    for (int i = 0; i < scene->mNumMaterials; ++i) 
+    for (int i = 0; i < scene->mNumMaterials; ++i)
     {
         aiMaterial * material = scene->mMaterials[i];
         std::cout << "diffuse: " << material->GetTextureCount(aiTextureType_DIFFUSE) << std::endl;
@@ -222,7 +223,7 @@ aiMesh* Synthesizer::loadTexturedMesh(const std::string filename, std::string & 
         std::cout << "ambient: " << material->GetTextureCount(aiTextureType_AMBIENT) << std::endl;
         std::cout << "shininess: " << material->GetTextureCount(aiTextureType_SHININESS) << std::endl;
 
-        if (material->GetTextureCount(aiTextureType_DIFFUSE)) 
+        if (material->GetTextureCount(aiTextureType_DIFFUSE))
         {
             aiString path;
             material->GetTexture(aiTextureType_DIFFUSE,0,&path);
@@ -304,7 +305,7 @@ void Synthesizer::initializeBuffers(int model_index, aiMesh* assimpMesh, std::st
       // vertex colors
       std::vector<float3> colors3(assimpMesh->mNumVertices);
 
-      for (std::size_t i = 0; i < assimpMesh->mNumVertices; i++) 
+      for (std::size_t i = 0; i < assimpMesh->mNumVertices; i++)
       {
           if (assimpMesh->mColors[0])
           {
@@ -320,8 +321,8 @@ void Synthesizer::initializeBuffers(int model_index, aiMesh* assimpMesh, std::st
 }
 
 
-void Synthesizer::render_python(int width, int height, np::ndarray const & parameters, 
-  np::ndarray const & color, np::ndarray const & depth, np::ndarray const & vertmap, np::ndarray const & class_indexes, 
+void Synthesizer::render_python(int width, int height, np::ndarray const & parameters,
+  np::ndarray const & color, np::ndarray const & depth, np::ndarray const & vertmap, np::ndarray const & class_indexes,
   np::ndarray const & poses_return, np::ndarray const & centers_return, bool is_sampling, bool is_sampling_pose)
 {
 
@@ -342,7 +343,7 @@ void Synthesizer::render_python(int width, int height, np::ndarray const & param
 }
 
 
-void Synthesizer::render(int width, int height, float fx, float fy, float px, float py, float znear, float zfar, float tnear, float tfar, 
+void Synthesizer::render(int width, int height, float fx, float fy, float px, float py, float znear, float zfar, float tnear, float tfar,
               float* color, float* depth, float* vertmap, float* class_indexes, float *poses_return, float* centers_return,
               bool is_sampling, bool is_sampling_pose)
 {
@@ -588,7 +589,7 @@ void Synthesizer::render(int width, int height, float fx, float fy, float px, fl
     else
       renderer_color_->texture(1).Download(color, GL_BGRA, GL_FLOAT);
   }
-  
+
   // read depth image
   if (depth)
   {
@@ -610,7 +611,7 @@ void Synthesizer::render(int width, int height, float fx, float fy, float px, fl
 
 
 
-void Synthesizer::render_poses_python(int num, int channel, int width, int height, np::ndarray const & parameters, 
+void Synthesizer::render_poses_python(int num, int channel, int width, int height, np::ndarray const & parameters,
   np::ndarray const & color, np::ndarray const & poses)
 {
 
@@ -627,7 +628,7 @@ void Synthesizer::render_poses_python(int num, int channel, int width, int heigh
 }
 
 
-void Synthesizer::render_poses(int num, int channel, int width, int height, float fx, float fy, float px, float py, float znear, float zfar, 
+void Synthesizer::render_poses(int num, int channel, int width, int height, float fx, float fy, float px, float py, float znear, float zfar,
   unsigned char* color, float *poses_input)
 {
   pangolin::OpenGlMatrixSpec projectionMatrix = pangolin::ProjectionMatrixRDF_TopLeft(width, height, fx, fy, px+0.5, py+0.5, znear, zfar);
@@ -666,7 +667,7 @@ void Synthesizer::render_poses(int num, int channel, int width, int height, floa
 
     // change vertex color
     std::vector<uchar3> colors3(texturedVertices_[id].num_elements);
-    for (std::size_t j = 0; j < texturedVertices_[id].num_elements; j++) 
+    for (std::size_t j = 0; j < texturedVertices_[id].num_elements; j++)
       colors3[j] = make_uchar3(i + 1, 0, 0);
     vertexColors_[id].Reinitialise(pangolin::GlArrayBuffer, texturedVertices_[id].num_elements, GL_UNSIGNED_BYTE, 3, GL_STATIC_DRAW);
     vertexColors_[id].Upload(colors3.data(), texturedVertices_[id].num_elements*sizeof(uchar)*3);
@@ -689,13 +690,13 @@ void Synthesizer::render_poses(int num, int channel, int width, int height, floa
   // read color image
   if (color)
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, color);
-  
+
   pangolin::FinishFrame();
   counter_++;
 }
 
 
-void Synthesizer::render_poses_color_python(int num, int channel, int width, int height, np::ndarray const & parameters, 
+void Synthesizer::render_poses_color_python(int num, int channel, int width, int height, np::ndarray const & parameters,
   np::ndarray const & color, np::ndarray const & poses)
 {
 
@@ -712,7 +713,7 @@ void Synthesizer::render_poses_color_python(int num, int channel, int width, int
 }
 
 
-void Synthesizer::render_poses_color(int num, int channel, int width, int height, float fx, float fy, float px, float py, float znear, float zfar, 
+void Synthesizer::render_poses_color(int num, int channel, int width, int height, float fx, float fy, float px, float py, float znear, float zfar,
   unsigned char* color, float *poses_input)
 {
   pangolin::OpenGlMatrixSpec projectionMatrix = pangolin::ProjectionMatrixRDF_TopLeft(width, height, fx, fy, px+0.5, py+0.5, znear, zfar);
@@ -790,13 +791,13 @@ void Synthesizer::render_poses_color(int num, int channel, int width, int height
   // read color image
   if (color)
     glReadPixels(0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, color);
-  
+
   pangolin::FinishFrame();
   counter_++;
 }
 
 
-void Synthesizer::render_one_python(int which_class, int width, int height, float fx, float fy, float px, float py, float znear, float zfar, 
+void Synthesizer::render_one_python(int which_class, int width, int height, float fx, float fy, float px, float py, float znear, float zfar,
   np::ndarray& color, np::ndarray& depth, np::ndarray& vertmap, np::ndarray& poses_return, np::ndarray& centers_return, np::ndarray& extents)
 {
   render_one(which_class, width, height, fx, fy, px, py, znear, zfar,
@@ -807,7 +808,7 @@ void Synthesizer::render_one_python(int which_class, int width, int height, floa
 
 
 // render for one class
-void Synthesizer::render_one(int which_class, int width, int height, float fx, float fy, float px, float py, float znear, float zfar, 
+void Synthesizer::render_one(int which_class, int width, int height, float fx, float fy, float px, float py, float znear, float zfar,
               float* color, float* depth, float* vertmap, float *poses_return, float* centers_return, float* extents)
 {
   int is_save = 0;
@@ -965,7 +966,7 @@ void Synthesizer::render_one(int which_class, int width, int height, float fx, f
   // read color image
   if (color)
     renderer_texture_->texture(1).Download(color, GL_BGRA, GL_FLOAT);
-  
+
   // read depth image
   if (depth)
     renderer_texture_->texture(2).Download(depth, GL_RGB, GL_FLOAT);
@@ -1001,8 +1002,8 @@ jp::jp_trans_t Synthesizer::quat2our(const Sophus::SE3d T_co)
     tpt = -tpt;
     rmat = -rmat;
   }
-	
-  return jp::jp_trans_t(rmat, tpt);  
+
+  return jp::jp_trans_t(rmat, tpt);
 }
 
 
@@ -1073,15 +1074,15 @@ inline cv::Point3f Synthesizer::getMode3D(jp::id_t objID, const cv::Point2f& pt,
 
 
 inline double Synthesizer::pointLineDistance(
-	const cv::Point3f& pt1, 
-	const cv::Point3f& pt2, 
+	const cv::Point3f& pt1,
+	const cv::Point3f& pt2,
 	const cv::Point3f& pt3)
 {
   return cv::norm((pt2 - pt1).cross(pt3 - pt1)) / cv::norm(pt2 - pt1);
 }
 
 
-inline bool Synthesizer::samplePoint2D(jp::id_t objID, int width, int num_classes, std::vector<cv::Point2f>& pts2D, 
+inline bool Synthesizer::samplePoint2D(jp::id_t objID, int width, int num_classes, std::vector<cv::Point2f>& pts2D,
   std::vector<cv::Point3f>& pts3D, const cv::Point2f& pt2D, const float* vertmap, const float* extents, float minDist2D, float minDist3D)
 {
   double minDist = getMinDist(pts2D, pt2D);
@@ -1105,8 +1106,8 @@ inline bool Synthesizer::samplePoint2D(jp::id_t objID, int width, int num_classe
 inline bool Synthesizer::samplePoint3D(
   jp::id_t objID,
   int width, int num_classes,
-  std::vector<cv::Point3f>& eyePts, 
-  std::vector<cv::Point3f>& objPts, 
+  std::vector<cv::Point3f>& eyePts,
+  std::vector<cv::Point3f>& objPts,
   const cv::Point2f& pt2D,
   const float* vertmap,
   const float* extents,
@@ -1135,9 +1136,9 @@ inline bool Synthesizer::samplePoint3D(
 
 /**
  * @brief Creates a list of pose hypothesis (potentially belonging to multiple objects) which still have to be processed (e.g. refined).
- * 
+ *
  * The method includes all remaining hypotheses of an object if there is still more than one, or if there is only one remaining but it still needs to be refined.
- * 
+ *
  * @param hypMap Map of object ID to a list of hypotheses for that object.
  * @param maxIt Each hypotheses should be at least this often refined.
  * @return std::vector< Ransac3D::TransHyp*, std::allocator< void > > List of hypotheses to be processed further.
@@ -1145,7 +1146,7 @@ inline bool Synthesizer::samplePoint3D(
 std::vector<TransHyp*> Synthesizer::getWorkingQueue(std::map<jp::id_t, std::vector<TransHyp>>& hypMap, int maxIt)
 {
   std::vector<TransHyp*> workingQueue;
-      
+
   for(auto it = hypMap.begin(); it != hypMap.end(); it++)
   for(int h = 0; h < it->second.size(); h++)
     if(it->second.size() > 1 || it->second[h].refSteps < maxIt) //exclude a hypothesis if it is the only one remaining for an object and it has been refined enough already
@@ -1184,7 +1185,7 @@ inline void Synthesizer::countInliers2D(
   hyp.inliers = 0;
 
   hyp.effPixels = 0; // num of pixels drawn
-  hyp.maxPixels += pixelBatch; // max num of pixels to be drawn	
+  hyp.maxPixels += pixelBatch; // max num of pixels to be drawn
 
   int maxPt = labels[hyp.objID].size(); // num of pixels of this class
   float successRate = hyp.maxPixels / (float) maxPt; // probability to accept a pixel
@@ -1196,9 +1197,9 @@ inline void Synthesizer::countInliers2D(
   {
     int index = labels[hyp.objID][ptIdx];
     cv::Point2d pt2D(index % width, index / width);
-  
+
     hyp.effPixels++;
-  
+
     // read out object coordinate
     cv::Point3d obj = getMode3D(hyp.objID, pt2D, vertmap, extents, width, num_classes);
 
@@ -1244,7 +1245,7 @@ inline void Synthesizer::countInliers3D(
   Hypothesis trans(pose.first, pose.second);
 
   hyp.effPixels = 0; // num of pixels drawn
-  hyp.maxPixels += pixelBatch; // max num of pixels to be drawn	
+  hyp.maxPixels += pixelBatch; // max num of pixels to be drawn
 
   int maxPt = labels[hyp.objID].size();
   float successRate = hyp.maxPixels / (float) maxPt; // probability to accept a pixel
@@ -1256,19 +1257,19 @@ inline void Synthesizer::countInliers3D(
   {
     int index = labels[hyp.objID][ptIdx];
     cv::Point2d pt2D(index % width, index / width);
-    
+
     // skip depth holes
     if(eyeData(pt2D.y, pt2D.x)[2] == 0)
     {
       ptIdx++;
       continue;
     }
-  
+
     // read out camera coordinate
     cv::Point3d eye(eyeData(pt2D.y, pt2D.x)[0], eyeData(pt2D.y, pt2D.x)[1], eyeData(pt2D.y, pt2D.x)[2]);
-  
+
     hyp.effPixels++;
-  
+
     // read out object coordinate
     cv::Point3d obj = getMode3D(hyp.objID, pt2D, vertmap, extents, width, num_classes);
 
@@ -1291,16 +1292,16 @@ inline void Synthesizer::countInliers3D(
 inline void Synthesizer::filterInliers2D(TransHyp& hyp, int maxInliers)
 {
   if(hyp.inlierPts2D.size() < maxInliers) return; // maximum number not reached, do nothing
-      		
+
   std::vector<std::pair<cv::Point3d, cv::Point2d>> inlierPts; // filtered list of inlier correspondences
-	
+
   // select random correspondences to keep
   for(unsigned i = 0; i < maxInliers; i++)
   {
     int idx = irand(0, hyp.inlierPts2D.size());
     inlierPts.push_back(hyp.inlierPts2D[idx]);
   }
-	
+
   hyp.inlierPts2D = inlierPts;
 }
 
@@ -1308,21 +1309,21 @@ inline void Synthesizer::filterInliers2D(TransHyp& hyp, int maxInliers)
 inline void Synthesizer::filterInliers3D(TransHyp& hyp, int maxInliers)
 {
   if(hyp.inlierPts.size() < maxInliers) return; // maximum number not reached, do nothing
-      		
+
   std::vector<std::pair<cv::Point3d, cv::Point3d>> inlierPts; // filtered list of inlier correspondences
-	
+
   // select random correspondences to keep
   for(unsigned i = 0; i < maxInliers; i++)
   {
     int idx = irand(0, hyp.inlierPts.size());
     inlierPts.push_back(hyp.inlierPts[idx]);
   }
-	
+
   hyp.inlierPts = inlierPts;
 }
 
 
-inline void Synthesizer::updateHyp2D(TransHyp& hyp, const cv::Mat& camMat, int imgWidth, int imgHeight, 
+inline void Synthesizer::updateHyp2D(TransHyp& hyp, const cv::Mat& camMat, int imgWidth, int imgHeight,
   const std::vector<cv::Point3f>& bb3D, int maxPixels)
 {
   if(hyp.inlierPts2D.size() < 4) return;
@@ -1335,37 +1336,37 @@ inline void Synthesizer::updateHyp2D(TransHyp& hyp, const cv::Mat& camMat, int i
     points2D.push_back(hyp.inlierPts2D[i].second);
     points3D.push_back(hyp.inlierPts2D[i].first);
   }
-      
+
   // recalculate pose
   cv::solvePnP(points3D, points2D, camMat, cv::Mat(), hyp.pose.first, hyp.pose.second, true, CV_EPNP);
-	
+
   // update 2D bounding box
   hyp.bb = getBB2D(imgWidth, imgHeight, bb3D, camMat, hyp.pose);
 }
 
 
-inline void Synthesizer::updateHyp3D(TransHyp& hyp, const cv::Mat& camMat, int imgWidth, int imgHeight, 
+inline void Synthesizer::updateHyp3D(TransHyp& hyp, const cv::Mat& camMat, int imgWidth, int imgHeight,
   const std::vector<cv::Point3f>& bb3D, int maxPixels)
 {
-  if(hyp.inlierPts.size() < 4) 
+  if(hyp.inlierPts.size() < 4)
     return;
   filterInliers3D(hyp, maxPixels); // limit the number of correspondences
-      
+
   // data conversion
   jp::jp_trans_t pose = jp::cv2our(hyp.pose);
-  Hypothesis trans(pose.first, pose.second);	
-	
+  Hypothesis trans(pose.first, pose.second);
+
   // recalculate pose
   trans.refine(hyp.inlierPts);
   hyp.pose = jp::our2cv(jp::jp_trans_t(trans.getRotation(), trans.getTranslation()));
-	
+
   // update 2D bounding box
   hyp.bb = getBB2D(imgWidth, imgHeight, bb3D, camMat, hyp.pose);
 }
 
 
 /***********************************************************
-pose estimation using object coordinate regression and depth 
+pose estimation using object coordinate regression and depth
 ***********************************************************/
 
 
@@ -1380,11 +1381,11 @@ jp::coord3_t Synthesizer::pxToEye(int x, int y, jp::depth_t depth, float fx, flo
     eye(2) = 0;
     return eye;
   }
-	
+
   eye(0) = (x - px) * depth / fx / depth_factor;
   eye(1) = (y - py) * depth / fy / depth_factor;
   eye(2) = depth / depth_factor;
-	
+
   return eye;
 }
 
@@ -1396,7 +1397,7 @@ void Synthesizer::getEye(unsigned char* rawdepth, jp::img_coord_t& img, jp::img_
 
   img = jp::img_coord_t(height, width);
   img_depth = jp::img_depth_t(height, width);
-	    
+
   #pragma omp parallel for
   for(int x = 0; x < width; x++)
   for(int y = 0; y < height; y++)
@@ -1411,15 +1412,15 @@ template<class T>
 inline double Synthesizer::getMinDist(const std::vector<T>& pointSet, const T& point)
 {
   double minDist = -1.f;
-      
+
   for(unsigned i = 0; i < pointSet.size(); i++)
   {
-    if(minDist < 0) 
+    if(minDist < 0)
       minDist = cv::norm(pointSet.at(i) - point);
     else
       minDist = std::min(minDist, cv::norm(pointSet.at(i) - point));
   }
-	
+
   return minDist;
 }
 
@@ -1427,16 +1428,16 @@ inline double Synthesizer::getMinDist(const std::vector<T>& pointSet, const T& p
 static double optEnergy2D(const std::vector<double> &pose, std::vector<double> &grad, void *data)
 {
   DataForOpt* dataForOpt = (DataForOpt*) data;
-	
+
   // convert pose to our format
   cv::Mat tvec(3, 1, CV_64F);
   cv::Mat rvec(3, 1, CV_64F);
-      
+
   for(int i = 0; i < 6; i++)
   {
-    if(i > 2) 
+    if(i > 2)
       tvec.at<double>(i-3, 0) = pose[i];
-    else 
+    else
       rvec.at<double>(i, 0) = pose[i];
   }
   jp::cv_trans_t trans(rvec, tvec);
@@ -1446,7 +1447,7 @@ static double optEnergy2D(const std::vector<double> &pose, std::vector<double> &
   for (int i = 0; i < dataForOpt->hyp->inlierPts2D.size(); i++)
     points3D.push_back(dataForOpt->hyp->inlierPts2D[i].first);
   cv::projectPoints(points3D, trans.first, trans.second, *(dataForOpt->camMat), cv::Mat(), projections);
-	
+
   float distance = 0;
   for(int pt = 0; pt < dataForOpt->hyp->inlierPts2D.size(); pt++) // iterate over correspondences
   {
@@ -1455,8 +1456,8 @@ static double optEnergy2D(const std::vector<double> &pose, std::vector<double> &
     cv::Point2d pt2D = dataForOpt->hyp->inlierPts2D.at(pt).second;
     distance += cv::norm(pt2D - projections[pt]);
   }
-      
-  float energy = distance / dataForOpt->hyp->inlierPts.size();	
+
+  float energy = distance / dataForOpt->hyp->inlierPts.size();
   return energy;
 }
 
@@ -1464,16 +1465,16 @@ static double optEnergy2D(const std::vector<double> &pose, std::vector<double> &
 static double optEnergy3D(const std::vector<double> &pose, std::vector<double> &grad, void *data)
 {
   DataForOpt* dataForOpt = (DataForOpt*) data;
-	
+
   // convert pose to our format
   cv::Mat tvec(3, 1, CV_64F);
   cv::Mat rvec(3, 1, CV_64F);
-      
+
   for(int i = 0; i < 6; i++)
   {
-    if(i > 2) 
+    if(i > 2)
       tvec.at<double>(i-3, 0) = pose[i];
-    else 
+    else
       rvec.at<double>(i, 0) = pose[i];
   }
   jp::cv_trans_t trans(rvec, tvec);
@@ -1481,7 +1482,7 @@ static double optEnergy3D(const std::vector<double> &pose, std::vector<double> &
   // pose conversion
   jp::jp_trans_t jpTrans = jp::cv2our(trans);
   jpTrans.first = jp::double2float(jpTrans.first);
-	
+
   float distance = 0;
   for(int pt = 0; pt < dataForOpt->hyp->inlierPts.size(); pt++) // iterate over correspondences
   {
@@ -1490,28 +1491,28 @@ static double optEnergy3D(const std::vector<double> &pose, std::vector<double> &
     obj(0, 0) = dataForOpt->hyp->inlierPts.at(pt).first.x;
     obj(1, 0) = dataForOpt->hyp->inlierPts.at(pt).first.y;
     obj(2, 0) = dataForOpt->hyp->inlierPts.at(pt).first.z;
-		
+
     // convert mode center from object coordinates to camera coordinates
     cv::Mat_<float> transObj = jpTrans.first * obj;
     transObj(0, 0) += jpTrans.second.x;
     transObj(1, 0) += jpTrans.second.y;
     transObj(2, 0) += jpTrans.second.z;
-	    
+
     distance += std::sqrt((transObj(0, 0) - dataForOpt->hyp->inlierPts.at(pt).second.x) * (transObj(0, 0) - dataForOpt->hyp->inlierPts.at(pt).second.x)
                         + (transObj(1, 0) - dataForOpt->hyp->inlierPts.at(pt).second.y) * (transObj(1, 0) - dataForOpt->hyp->inlierPts.at(pt).second.y)
                         + (transObj(2, 0) - dataForOpt->hyp->inlierPts.at(pt).second.z) * (transObj(2, 0) - dataForOpt->hyp->inlierPts.at(pt).second.z));
   }
-      
-  float energy = distance / dataForOpt->hyp->inlierPts.size();	
+
+  float energy = distance / dataForOpt->hyp->inlierPts.size();
   return energy;
 }
 
 
-double Synthesizer::refineWithOpt(TransHyp& hyp, cv::Mat& camMat, int iterations, int is_3D) 
+double Synthesizer::refineWithOpt(TransHyp& hyp, cv::Mat& camMat, int iterations, int is_3D)
 {
   // set up optimization algorithm (gradient free)
-  nlopt::opt opt(nlopt::LN_NELDERMEAD, 6); 
-      
+  nlopt::opt opt(nlopt::LN_NELDERMEAD, 6);
+
   // provide pointers to data and methods used in the energy calculation
   DataForOpt data;
   data.hyp = &hyp;
@@ -1521,28 +1522,28 @@ double Synthesizer::refineWithOpt(TransHyp& hyp, cv::Mat& camMat, int iterations
   std::vector<double> vec(6);
   for(int i = 0; i < 6; i++)
   {
-    if(i > 2) 
+    if(i > 2)
       vec[i] = hyp.pose.second.at<double>(i-3, 0);
-    else vec[i] = 
+    else vec[i] =
       hyp.pose.first.at<double>(i, 0);
   }
-	
-  // set optimization bounds 
+
+  // set optimization bounds
   double rotRange = 10;
   rotRange *= PI / 180;
   double tRangeXY = 0.1;
   double tRangeZ = 0.5; // pose uncertainty is larger in Z direction
-	
+
   std::vector<double> lb(6);
   lb[0] = vec[0]-rotRange; lb[1] = vec[1]-rotRange; lb[2] = vec[2]-rotRange;
   lb[3] = vec[3]-tRangeXY; lb[4] = vec[4]-tRangeXY; lb[5] = vec[5]-tRangeZ;
   opt.set_lower_bounds(lb);
-      
+
   std::vector<double> ub(6);
   ub[0] = vec[0]+rotRange; ub[1] = vec[1]+rotRange; ub[2] = vec[2]+rotRange;
   ub[3] = vec[3]+tRangeXY; ub[4] = vec[4]+tRangeXY; ub[5] = vec[5]+tRangeZ;
   opt.set_upper_bounds(ub);
-      	
+
   // configure NLopt
   if (is_3D)
     opt.set_min_objective(optEnergy3D, &data);
@@ -1557,14 +1558,14 @@ double Synthesizer::refineWithOpt(TransHyp& hyp, cv::Mat& camMat, int iterations
   // read back optimized pose
   for(int i = 0; i < 6; i++)
   {
-    if(i > 2) 
+    if(i > 2)
       hyp.pose.second.at<double>(i-3, 0) = vec[i];
-    else 
+    else
       hyp.pose.first.at<double>(i, 0) = vec[i];
   }
-	
+
   return energy;
-}    
+}
 
 
 // estimate pose using RGB only
@@ -1586,7 +1587,7 @@ void Synthesizer::estimatePose2D(
 
   if (object_ids.size() == 0)
     return;
-		
+
   int maxIterations = 10000000;
   float inlierThreshold2D = 10;
   float minDist2D = 10;   // in pixel
@@ -1605,10 +1606,10 @@ void Synthesizer::estimatePose2D(
   camMat(2, 2) = 1.f;
   camMat(0, 2) = px;
   camMat(1, 2) = py;
-		
+
   // hold for each object a list of pose hypothesis, these are optimized until only one remains per object
   std::map<jp::id_t, std::vector<TransHyp>> hypMap;
-	
+
   // sample initial pose hypotheses
   #pragma omp parallel for
   for(unsigned h = 0; h < ransacIterations; h++)
@@ -1617,7 +1618,7 @@ void Synthesizer::estimatePose2D(
     // 2D pixel - 3D object coordinate correspondences
     std::vector<cv::Point2f> points2D;
     std::vector<cv::Point3f> points3D;
-	    
+
     // sample first point and choose object ID
     jp::id_t objID = object_ids[irand(0, object_ids.size())];
     if(objID == 0)
@@ -1636,7 +1637,7 @@ void Synthesizer::estimatePose2D(
     cv::Point2f pt2(index % width, index / width);
     if(!samplePoint2D(objID, width, num_classes, points2D, points3D, pt2, vertmap, extents, minDist2D, minDist3D))
       continue;
-    
+
     pindex = irand(0, labels[objID].size());
     index = labels[objID][pindex];
     cv::Point2f pt3(index % width, index / width);
@@ -1658,10 +1659,10 @@ void Synthesizer::estimatePose2D(
     // reconstruct camera
     jp::cv_trans_t trans;
     cv::solvePnP(points3D, points2D, camMat, cv::Mat(), trans.first, trans.second, false, pnpMethod);
-		
+
     std::vector<cv::Point2f> projections;
     cv::projectPoints(points3D, trans.first, trans.second, camMat, cv::Mat(), projections);
-		
+
     // check reconstruction, 4 sampled points should be reconstructed perfectly
     bool foundOutlier = false;
     for(unsigned j = 0; j < points2D.size(); j++)
@@ -1670,18 +1671,18 @@ void Synthesizer::estimatePose2D(
       foundOutlier = true;
       break;
     }
-    if(foundOutlier) continue;	    
-		
+    if(foundOutlier) continue;
+
     // create a hypothesis object to store meta data
     TransHyp hyp(objID, trans);
-		
+
     // update 2D bounding box
     hyp.bb = getBB2D(width, height, bb3Ds[objID-1], camMat, hyp.pose);
 
     //check if bounding box collapses
     if(hyp.bb.area() < minArea)
-      continue;	   
-        
+      continue;
+
     #pragma omp critical
     {
       hypMap[objID].push_back(hyp);
@@ -1701,7 +1702,7 @@ void Synthesizer::estimatePose2D(
 
   // create a working queue of all hypotheses to process
   std::vector<TransHyp*> workingQueue = getWorkingQueue(hypMap, refIt);
-	
+
   // main preemptive RANSAC loop, it will stop if there is max one hypothesis per object remaining which has been refined a minimal number of times
   while(!workingQueue.empty())
   {
@@ -1709,9 +1710,9 @@ void Synthesizer::estimatePose2D(
     #pragma omp parallel for
     for(int h = 0; h < workingQueue.size(); h++)
       countInliers2D(*(workingQueue[h]), camMat, labels, vertmap, extents, inlierThreshold2D, width, num_classes, preemptiveBatch);
-	    	    
+
     // sort hypothesis according to inlier count and discard bad half
-    #pragma omp parallel for 
+    #pragma omp parallel for
     for(unsigned o = 0; o < objList.size(); o++)
     {
       jp::id_t objID = objList[o];
@@ -1722,7 +1723,7 @@ void Synthesizer::estimatePose2D(
       }
     }
     workingQueue = getWorkingQueue(hypMap, refIt);
-	    
+
     // refine
     #pragma omp parallel for
     for(int h = 0; h < workingQueue.size(); h++)
@@ -1730,14 +1731,14 @@ void Synthesizer::estimatePose2D(
       updateHyp3D(*(workingQueue[h]), camMat, width, height, bb3Ds[workingQueue[h]->objID-1], maxPixels);
       workingQueue[h]->refSteps++;
     }
-    
+
     workingQueue = getWorkingQueue(hypMap, refIt);
   }
 
   for(auto it = hypMap.begin(); it != hypMap.end(); it++)
   for(int h = 0; h < it->second.size(); h++)
   {
-    if(it->second[h].inliers > minPixels) 
+    if(it->second[h].inliers > minPixels)
     {
       jp::jp_trans_t pose = jp::cv2our(it->second[h].pose);
       filterInliers2D(it->second[h], maxPixels);
@@ -1762,7 +1763,7 @@ void Synthesizer::estimatePose2D(
           }
         }
       }
-    } 
+    }
   }
 }
 
@@ -1787,7 +1788,7 @@ void Synthesizer::estimatePose3D(
 
   if (object_ids.size() == 0)
     return;
-		
+
   int maxIterations = 10000000;
   float inlierThreshold3D = 0.01;
   float minDist3D = 0.01; // in m, initial coordinates (camera and object, respectively) sampled to generate a hypothesis should be at least this far apart (for stability)
@@ -1805,10 +1806,10 @@ void Synthesizer::estimatePose3D(
   camMat(2, 2) = 1.f;
   camMat(0, 2) = px;
   camMat(1, 2) = py;
-		
+
   // hold for each object a list of pose hypothesis, these are optimized until only one remains per object
   std::map<jp::id_t, std::vector<TransHyp>> hypMap;
-	
+
   // sample initial pose hypotheses
   #pragma omp parallel for
   for(unsigned h = 0; h < ransacIterations; h++)
@@ -1817,7 +1818,7 @@ void Synthesizer::estimatePose3D(
     // camera coordinate - object coordinate correspondences
     std::vector<cv::Point3f> eyePts;
     std::vector<cv::Point3f> objPts;
-	    
+
     // sample first point and choose object ID
     jp::id_t objID = object_ids[irand(0, object_ids.size())];
     if(objID == 0)
@@ -1837,7 +1838,7 @@ void Synthesizer::estimatePose3D(
     cv::Point2f pt2(index % width, index / width);
     if(!samplePoint3D(objID, width, num_classes, eyePts, objPts, pt2, vertmap, extents, eyeData, minDist3D))
       continue;
-    
+
     pindex = irand(0, labels[objID].size());
     index = labels[objID][pindex];
     cv::Point2f pt3(index % width, index / width);
@@ -1870,17 +1871,17 @@ void Synthesizer::estimatePose3D(
     jp::jp_trans_t pose;
     pose.first = trans.getRotation();
     pose.second = trans.getTranslation();
-    
+
     // create a hypothesis object to store meta data
     TransHyp hyp(objID, jp::our2cv(pose));
-    
+
     // update 2D bounding box
     hyp.bb = getBB2D(width, height, bb3Ds[objID-1], camMat, hyp.pose);
 
     //check if bounding box collapses
     if(hyp.bb.area() < minArea)
-      continue;	    
-    
+      continue;
+
     #pragma omp critical
     {
       hypMap[objID].push_back(hyp);
@@ -1900,7 +1901,7 @@ void Synthesizer::estimatePose3D(
 
   // create a working queue of all hypotheses to process
   std::vector<TransHyp*> workingQueue = getWorkingQueue(hypMap, refIt);
-	
+
   // main preemptive RANSAC loop, it will stop if there is max one hypothesis per object remaining which has been refined a minimal number of times
   while(!workingQueue.empty())
   {
@@ -1908,9 +1909,9 @@ void Synthesizer::estimatePose3D(
     #pragma omp parallel for
     for(int h = 0; h < workingQueue.size(); h++)
       countInliers3D(*(workingQueue[h]), labels, vertmap, extents, eyeData, inlierThreshold3D, width, num_classes, preemptiveBatch);
-	    	    
+
     // sort hypothesis according to inlier count and discard bad half
-    #pragma omp parallel for 
+    #pragma omp parallel for
     for(unsigned o = 0; o < objList.size(); o++)
     {
       jp::id_t objID = objList[o];
@@ -1921,7 +1922,7 @@ void Synthesizer::estimatePose3D(
       }
     }
     workingQueue = getWorkingQueue(hypMap, refIt);
-	    
+
     // refine
     #pragma omp parallel for
     for(int h = 0; h < workingQueue.size(); h++)
@@ -1929,14 +1930,14 @@ void Synthesizer::estimatePose3D(
       updateHyp3D(*(workingQueue[h]), camMat, width, height, bb3Ds[workingQueue[h]->objID-1], maxPixels);
       workingQueue[h]->refSteps++;
     }
-    
+
     workingQueue = getWorkingQueue(hypMap, refIt);
   }
 
   for(auto it = hypMap.begin(); it != hypMap.end(); it++)
   for(int h = 0; h < it->second.size(); h++)
   {
-    if(it->second[h].inliers > minPixels) 
+    if(it->second[h].inliers > minPixels)
     {
       jp::jp_trans_t pose = jp::cv2our(it->second[h].pose);
       filterInliers3D(it->second[h], maxPixels);
@@ -1961,7 +1962,7 @@ void Synthesizer::estimatePose3D(
           }
         }
       }
-    } 
+    }
   }
 }
 
@@ -2009,13 +2010,13 @@ void Synthesizer::refinePose(int width, int height, int objID, float znear, floa
       vec[5] = 0;
       vec[6] = 0;
 
-      // optimization 
+      // optimization
       float energy = poseWithOpt(vec, data, iterations);
       Eigen::Quaternionf quaternion(vec[0], vec[1], vec[2], vec[3]);
       Sophus::SE3f::Point translation(vec[4], vec[5], vec[6]);
       Sophus::SE3f update(quaternion, translation);
       T_co = update * T_co;
-      break;     
+      break;
     }
     case 1:
     {
@@ -2028,8 +2029,8 @@ void Synthesizer::refinePose(int width, int height, int objID, float znear, floa
   }
 }
 
-void Synthesizer::icp_python(np::ndarray& labelmap, np::ndarray& depth, np::ndarray& parameters, 
-  int height, int width, int num_roi, int channel_roi, 
+void Synthesizer::icp_python(np::ndarray& labelmap, np::ndarray& depth, np::ndarray& parameters,
+  int height, int width, int num_roi, int channel_roi,
   np::ndarray& rois, np::ndarray& poses, np::ndarray& outputs, np::ndarray& outputs_icp, float maxError)
 {
   float* meta = reinterpret_cast<float*>(parameters.get_data());
@@ -2049,8 +2050,8 @@ void Synthesizer::icp_python(np::ndarray& labelmap, np::ndarray& depth, np::ndar
 
 
 // ICP
-void Synthesizer::solveICP(const int* labelmap, unsigned char* depth, int height, int width, float fx, float fy, float px, float py, 
-  float znear, float zfar, float factor, int num_roi, int channel_roi, const float* rois, const float* poses, 
+void Synthesizer::solveICP(const int* labelmap, unsigned char* depth, int height, int width, float fx, float fy, float px, float py,
+  float znear, float zfar, float factor, int num_roi, int channel_roi, const float* rois, const float* poses,
   float* outputs, float* outputs_icp, float maxError)
 {
   int iterations;
@@ -2278,7 +2279,7 @@ void Synthesizer::solveICP(const int* labelmap, unsigned char* depth, int height
 
     T_co.translation()(2) = Tz + 0.05;
     hyps.push_back(T_co);
-    
+
     iterations = 8;
     for (int j = 0; j < hyps.size(); j++)
     {
@@ -2391,7 +2392,7 @@ void Synthesizer::solveICP(const int* labelmap, unsigned char* depth, int height
     outputs_icp[i * 7 + 6] = translation_new(2);
   }
 
-  visualizePose(height, width, fx, fy, px, py, znear, zfar, rois, outputs_icp, num_roi, channel_roi);
+  // visualizePose(height, width, fx, fy, px, py, znear, zfar, rois, outputs_icp, num_roi, channel_roi);
 }
 
 
@@ -2529,13 +2530,13 @@ static double optEnergy(const std::vector<double> &pose, std::vector<double> &gr
 double Synthesizer::poseWithOpt(std::vector<double> & vec, DataForOpt data, int iterations)
 {
   // set up optimization algorithm (gradient free)
-  nlopt::opt opt(nlopt::LN_NELDERMEAD, 7); 
+  nlopt::opt opt(nlopt::LN_NELDERMEAD, 7);
 
-  // set optimization bounds 
+  // set optimization bounds
   double rotRange = 0.1;
   double tRangeXY = 0.01;
   double tRangeZ = 0.1; // pose uncertainty is larger in Z direction
-	
+
   std::vector<double> lb(7);
   lb[0] = vec[0] - rotRange;
   lb[1] = vec[1] - rotRange;
@@ -2545,7 +2546,7 @@ double Synthesizer::poseWithOpt(std::vector<double> & vec, DataForOpt data, int 
   lb[5] = vec[5] - tRangeXY;
   lb[6] = vec[6] - tRangeZ;
   opt.set_lower_bounds(lb);
-      
+
   std::vector<double> ub(7);
   ub[0] = vec[0] + rotRange;
   ub[1] = vec[1] + rotRange;
@@ -2555,7 +2556,7 @@ double Synthesizer::poseWithOpt(std::vector<double> & vec, DataForOpt data, int 
   ub[5] = vec[5] + tRangeXY;
   ub[6] = vec[6] + tRangeZ;
   opt.set_upper_bounds(ub);
-      
+
   // configure NLopt
   opt.set_min_objective(optEnergy, &data);
   opt.set_maxeval(iterations);
@@ -2565,12 +2566,12 @@ double Synthesizer::poseWithOpt(std::vector<double> & vec, DataForOpt data, int 
   nlopt::result result = opt.optimize(vec, energy);
 
   std::cout << "distance after optimization: " << energy << std::endl;
-   
+
   return energy;
 }
 
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
   // camera parameters
   int width = 640;
@@ -2580,13 +2581,13 @@ int main(int argc, char** argv)
   Synthesizer Synthesizer(argv[1], argv[2]);
   Synthesizer.setup(width, height);
 
-  while (!pangolin::ShouldQuit()) 
+  while (!pangolin::ShouldQuit())
   {
-    clock_t start = clock();    
+    clock_t start = clock();
 
     Synthesizer.render(width, height, fx, fy, px, py, znear, zfar, tnear, tfar, NULL, NULL, NULL, NULL, NULL, NULL, true, true);
 
-    clock_t stop = clock();    
+    clock_t stop = clock();
     double elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
     printf("Time elapsed in ms: %f\n", elapsed);
   }

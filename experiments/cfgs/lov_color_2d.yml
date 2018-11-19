@@ -26,7 +26,7 @@ TRAIN:
   THRESHOLD_LABEL: 1.0
   VISUALIZE: False
   POSE_REG: True
-  SYNTHESIZE: True
+  SYNTHESIZE: False
   SYNROOT: 'data/LOV/data_syn/'
   SYNNUM: 80000
   SYN_RATIO: 5
@@ -41,5 +41,5 @@ TEST:
   VERTEX_REG_3D: False
   VISUALIZE: True
   POSE_REG: True
-  POSE_REFINE: True
+  POSE_REFINE: False
   SYNTHETIC: False

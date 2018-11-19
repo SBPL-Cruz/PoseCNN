@@ -14,6 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   cv_bridge
   message_generation
+  interactive_markers
+  visualization_msgs 
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -206,5 +209,7 @@ catkin_install_python(
   PROGRAMS
   bin/hello
   bin/test_images
+  bin/take_images
+  bin/keypress
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

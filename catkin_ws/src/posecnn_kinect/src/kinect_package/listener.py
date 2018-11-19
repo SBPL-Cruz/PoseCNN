@@ -11,6 +11,9 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 # from synthesizer.msg import PoseCNNMsg
 from posecnn_kinect.msg import PoseCNNMsg
+from interactive_markers.interactive_marker_server import *
+from visualization_msgs.msg import *
+from utils.nms import nms
 
 # def vis_segmentations_vertmaps_detection(im, im_depth, im_labels, colors, center_map,
 #   labels, rois, poses, poses_new, intrinsic_matrix, num_classes, classes, points):
@@ -135,6 +138,8 @@ from posecnn_kinect.msg import PoseCNNMsg
 #
 #     plt.show()
 
+
+
 class ImageListener:
 
     def __init__(self, sess, network, imdb, meta_data, cfg):
@@ -148,8 +153,16 @@ class ImageListener:
         self.count = 0
         # self.axs = self.create_plots()
 
+        if (cfg.TEST.VERTEX_REG_2D and cfg.TEST.POSE_REFINE) or (cfg.TEST.VERTEX_REG_3D and cfg.TEST.POSE_REG):
+            # import libsynthesizer
+            from synthesize import libsynthesizer
+
+            self.synthesizer = libsynthesizer.Synthesizer(cfg.CAD, cfg.POSE)
+            self.synthesizer.setup(cfg.TRAIN.SYN_WIDTH, cfg.TRAIN.SYN_HEIGHT)
+            print "synthesizer setup done"
+
         # initialize a node
-        rospy.init_node("image_listener")
+        rospy.init_node("image_listener_posecnn")
         self.posecnn_pub = rospy.Publisher('posecnn_result', PoseCNNMsg, queue_size=1)
         self.label_pub = rospy.Publisher('posecnn_label', Image, queue_size=1)
         self.center_pub = rospy.Publisher('posecnn_center', Image, queue_size=1)
@@ -162,8 +175,11 @@ class ImageListener:
         ts = message_filters.ApproximateTimeSynchronizer([rgb_sub, depth_sub], queue_size, slop_seconds)
         ts.registerCallback(self.callback)
 
+    def processFeedback(self):
+        return
+
     def callback(self, rgb, depth):
-        # print "test"
+        # print "test1"
         if depth.encoding == '32FC1':
             depth_32 = self.cv_bridge.imgmsg_to_cv2(depth) * 1000
             depth_cv = np.array(depth_32, dtype=np.uint16)
@@ -201,46 +217,48 @@ class ImageListener:
         im_scale = self.cfg.TEST.SCALES_BASE[0]
         im_depth = depth_cv
 
-        # poses_new = []
-        # poses_icp = []
-        # if self.cfg.TEST.VERTEX_REG_2D:
-        #     if self.cfg.TEST.POSE_REG:
-        #         # pose refinement
-        #         fx = self.meta_data['intrinsic_matrix'][0, 0] * im_scale
-        #         fy = self.meta_data['intrinsic_matrix'][1, 1] * im_scale
-        #         px = self.meta_data['intrinsic_matrix'][0, 2] * im_scale
-        #         py = self.meta_data['intrinsic_matrix'][1, 2] * im_scale
-        #         factor = self.meta_data['factor_depth']
-        #         znear = 0.25
-        #         zfar = 6.0
-        #         poses_new = np.zeros((poses.shape[0], 7), dtype=np.float32)
-        #         poses_icp = np.zeros((poses.shape[0], 7), dtype=np.float32)
-        #         error_threshold = 0.01
-        #         if self.cfg.TEST.POSE_REFINE:
-        #             labels_icp = labels.copy();
-        #             rois_icp = rois
-        #             if self.imdb.num_classes == 2:
-        #                 I = np.where(labels_icp > 0)
-        #                 labels_icp[I[0], I[1]] = self.imdb._cls_index
-        #                 rois_icp = rois.copy()
-        #                 rois_icp[:, 1] = self.imdb._cls_index
-        #             im_depth = cv2.resize(im_depth, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_LINEAR)
-        #
-        #             parameters = np.zeros((7, ), dtype=np.float32)
-        #             parameters[0] = fx
-        #             parameters[1] = fy
-        #             parameters[2] = px
-        #             parameters[3] = py
-        #             parameters[4] = znear
-        #             parameters[5] = zfar
-        #             parameters[6] = factor
-        #
-        #             height = labels_icp.shape[0]
-        #             width = labels_icp.shape[1]
-        #             num_roi = rois_icp.shape[0]
-        #             channel_roi = rois_icp.shape[1]
-        #             synthesizer.icp_python(labels_icp, im_depth, parameters, height, width, num_roi, channel_roi, \
-        #                                    rois_icp, poses, poses_new, poses_icp, error_threshold)
+        # cv2.imshow("depth",im_depth)
+
+        poses_new = []
+        poses_icp = []
+        if self.cfg.TEST.VERTEX_REG_2D:
+            if self.cfg.TEST.POSE_REG:
+                # pose refinement
+                fx = self.meta_data['intrinsic_matrix'][0, 0] * im_scale
+                fy = self.meta_data['intrinsic_matrix'][1, 1] * im_scale
+                px = self.meta_data['intrinsic_matrix'][0, 2] * im_scale
+                py = self.meta_data['intrinsic_matrix'][1, 2] * im_scale
+                factor = self.meta_data['factor_depth']
+                znear = 0.25
+                zfar = 6.0
+                poses_new = np.zeros((poses.shape[0], 7), dtype=np.float32)
+                poses_icp = np.zeros((poses.shape[0], 7), dtype=np.float32)
+                error_threshold = 0.01
+                if self.cfg.TEST.POSE_REFINE:
+                    labels_icp = labels.copy();
+                    rois_icp = rois
+                    if self.imdb.num_classes == 2:
+                        I = np.where(labels_icp > 0)
+                        labels_icp[I[0], I[1]] = self.imdb._cls_index
+                        rois_icp = rois.copy()
+                        rois_icp[:, 1] = self.imdb._cls_index
+                    im_depth = cv2.resize(im_depth, None, None, fx=im_scale, fy=im_scale, interpolation=cv2.INTER_LINEAR)
+
+                    parameters = np.zeros((7, ), dtype=np.float32)
+                    parameters[0] = fx
+                    parameters[1] = fy
+                    parameters[2] = px
+                    parameters[3] = py
+                    parameters[4] = znear
+                    parameters[5] = zfar
+                    parameters[6] = factor
+
+                    height = labels_icp.shape[0]
+                    width = labels_icp.shape[1]
+                    num_roi = rois_icp.shape[0]
+                    channel_roi = rois_icp.shape[1]
+                    self.synthesizer.icp_python(labels_icp, im_depth, parameters, height, width, num_roi, channel_roi, \
+                                           rois_icp, poses, poses_new, poses_icp, error_threshold)
 
 
         if self.cfg.TEST.VISUALIZE:
@@ -300,6 +318,59 @@ class ImageListener:
         center_msg.header.frame_id = rgb.header.frame_id
         center_msg.encoding = 'rgb8'
         self.center_pub.publish(center_msg)
+
+        server = InteractiveMarkerServer("simple_marker")
+
+        # create an interactive marker for our server
+        int_marker = InteractiveMarker()
+        int_marker.header.frame_id = "camera_link"
+        int_marker.name = "my_marker"
+        int_marker.description = "Simple 1-DOF Control"
+
+        # create a grey box marker
+        if cfg.TEST.POSE_REG:
+            for i in xrange(rois.shape[0]):
+                cls = int(rois[i, 1])
+                if cls > 0:
+                    T = poses[i, 4:7]
+                    print T
+                    box_marker = Marker()
+                    box_marker.type = Marker.CUBE
+                    box_marker.scale.x = T[0]
+                    box_marker.scale.y = T[1]
+                    box_marker.scale.z = T[2]
+                    box_marker.color.r = 0.0
+                    box_marker.color.g = 0.5
+                    box_marker.color.b = 0.5
+                    box_marker.color.a = 1.0
+
+                    # create a non-interactive control which contains the box
+                    box_control = InteractiveMarkerControl()
+                    box_control.always_visible = True
+                    box_control.markers.append( box_marker )
+
+                    # add the control to the interactive marker
+                    int_marker.controls.append( box_control )
+
+                    # create a control which will move the box
+                    # this control does not contain any markers,
+                    # which will cause RViz to insert two arrows
+                    rotate_control = InteractiveMarkerControl()
+                    rotate_control.name = "move_x"
+                    rotate_control.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+
+                    # add the control to the interactive marker
+                    int_marker.controls.append(rotate_control);
+
+                    # add the interactive marker to our collection &
+                    # tell the server to call processFeedback() when feedback arrives for it
+                    server.insert(int_marker, self.processFeedback)
+
+                    # 'commit' changes and send to all clients
+
+        server.applyChanges()
+
+        # print "test"
 
 
     def create_plots(self):
@@ -489,10 +560,10 @@ class ImageListener:
                               net.get_output('rois'), net.get_output('poses_init'), net.get_output('poses_tanh')])
 
                 # non-maximum suppression
-                # keep = nms(rois, 0.5)
-                # rois = rois[keep, :]
-                # poses_init = poses_init[keep, :]
-                # poses_pred = poses_pred[keep, :]
+                keep = nms(rois, 0.5)
+                rois = rois[keep, :]
+                poses_init = poses_init[keep, :]
+                poses_pred = poses_pred[keep, :]
                 # print rois
 
                 # combine poses

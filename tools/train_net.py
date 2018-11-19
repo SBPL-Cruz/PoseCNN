@@ -243,7 +243,7 @@ def render(data_queue, intrinsic_matrix, points):
             x2d = np.matmul(intrinsic_matrix, np.matmul(RT, x3d))
             x2d[0, :] = np.divide(x2d[0, :], x2d[2, :])
             x2d[1, :] = np.divide(x2d[1, :], x2d[2, :])
-        
+
             box[j, 0] = np.min(x2d[0, :])
             box[j, 1] = np.min(x2d[1, :])
             box[j, 2] = np.max(x2d[0, :])
@@ -300,14 +300,15 @@ if __name__ == '__main__':
     cfg.IS_TRAIN = True
 
     if cfg.TRAIN.SYNTHESIZE and cfg.TRAIN.SYN_ONLINE:
-        import libsynthesizer
+        from synthesize import libsynthesizer
         import scipy.io
         from transforms3d.quaternions import quat2mat
 
         # start rendering
         imdb.data_queue = Queue(maxsize=100)
         meta_data = scipy.io.loadmat(roidb[0]['meta_data'])
-        intrinsic_matrix = meta_data['intrinsic_matrix'].astype(np.float32, copy=True)
+        # intrinsic_matrix = meta_data['intrinsic_matrix'].astype(np.float32, copy=True)
+        intrinsic_matrix = np.array([[562.513801, 0.000000, 307.387919], [0.000000, 566.935402, 290.774702], [0, 0, 1]])
         if cfg.TRAIN.SYN_CLASS_INDEX >= 0:
             t = threading.Thread(target=render_one, args=(imdb.data_queue, intrinsic_matrix, imdb._extents_all, imdb._points_all))
         else:

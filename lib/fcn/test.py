@@ -27,7 +27,7 @@ from transforms3d.quaternions import quat2mat, mat2quat
 import scipy.io
 from scipy.optimize import minimize
 from normals import gpu_normals
-
+from scipy.spatial.distance import cdist
 # from synthesize import synthesizer
 # from pose_estimation import ransac
 # from kinect_fusion import kfusion
@@ -70,7 +70,8 @@ def _get_image_blob(im, im_depth, meta_data):
     im_orig = im_depth.astype(np.float32, copy=True)
     # im_orig = im_orig / im_orig.max() * 255
     im_orig = np.clip(im_orig / 2000.0, 0, 1) * 255
-    im_orig = np.tile(im_orig[:,:,np.newaxis], (1,1,3))
+    if len(im_orig.shape) < 3:
+        im_orig = np.tile(im_orig[:,:,np.newaxis], (1,1,3))
     im_orig -= cfg.PIXEL_MEANS
 
     processed_ims_depth = []
@@ -876,11 +877,30 @@ def vis_segmentations_vertmaps_detection(im, im_depth, im_labels, colors, center
     # show projection of the poses
     if cfg.TEST.POSE_REG:
 
-        ax = fig.add_subplot(3, 3, 7, aspect='equal')
-        plt.imshow(im)
-        ax.invert_yaxis()
+        ax1 = fig.add_subplot(3, 3, 7, aspect='equal')
+        ax1.imshow(im)
+        ax1.invert_yaxis()
+
+        ax2 = fig.add_subplot(3, 3, 8, aspect='equal')
+        ax2.imshow(im)
+        ax2.invert_yaxis()
+        # print colors
         for i in xrange(rois.shape[0]):
+            # print rois[i, 1]
             cls = int(rois[i, 1])
+            print colors[cls]
+            # x2d_orig = np.where(im_labels == colors[cls])
+            # print x2d_orig
+            # im_class = np.copy(im_labels)
+            # im_class[im_labels == colors[cls]] = 0
+            # im_class = im_class[0,:,:]
+            indices = np.where(np.all(im_labels == np.array(colors[cls]), axis=-1))
+            # indices = np.isin
+            # print indices
+            x2d_orig = np.vstack((indices[1], indices[0]))
+            # print x2d_orig
+            # print np.size(x2d_orig, 1)
+
             if cls > 0:
                 # extract 3D points
                 x3d = np.ones((4, points.shape[1]), dtype=np.float32)
@@ -888,6 +908,7 @@ def vis_segmentations_vertmaps_detection(im, im_depth, im_labels, colors, center
                 x3d[1, :] = points[cls,:,1]
                 x3d[2, :] = points[cls,:,2]
 
+                # print x3d
                 # projection
                 RT = np.zeros((3, 4), dtype=np.float32)
                 RT[:3, :3] = quat2mat(poses[i, :4])
@@ -898,16 +919,36 @@ def vis_segmentations_vertmaps_detection(im, im_depth, im_labels, colors, center
                 x2d = np.matmul(intrinsic_matrix, np.matmul(RT, x3d))
                 x2d[0, :] = np.divide(x2d[0, :], x2d[2, :])
                 x2d[1, :] = np.divide(x2d[1, :], x2d[2, :])
-                plt.plot(x2d[0, :], x2d[1, :], '.', color=np.divide(colors[cls], 255.0), alpha=0.5)
+                x2d_new = np.vstack((x2d[0, :], x2d[1, :]))
+                # print np.size(x2d_new, 1)
+                # plt.imshow(im_class)
+                ax1.plot(x2d[0, :], x2d[1, :], '.', color=np.divide(colors[cls], 255.0), alpha=0.5)
+                ax2.plot(x2d_orig[0, :], x2d_orig[1, :], '.', color=np.divide(colors[cls], 255.0), alpha=0.5)
+
+                distances = cdist(x2d_new.T,x2d_orig.T)
+                min_indices_orig = np.argmin(distances, axis=1)
+
+                print "original detected points - %d" % np.size(x2d_orig, 1)
+                print "model reprojected points - %d" % np.size(x2d_new, 1)
+                diffs = x2d_new - x2d_orig[:,min_indices_orig]
+                print np.size(diffs, 1)
+                print "nearest point reprojection error - %f" % np.linalg.norm(diffs)
+
+                # plt.scatter(x2d_orig[0,:], x2d_orig[1,:],  marker='.', color='r')
                 # plt.scatter(x2d[0, :], x2d[1, :], marker='o', color=np.divide(colors[cls], 255.0), s=10)
 
-        ax.set_title('projection of model points')
-        ax.invert_yaxis()
-        ax.set_xlim([0, im.shape[1]])
-        ax.set_ylim([im.shape[0], 0])
+        ax1.set_title('projection of model points')
+        ax1.invert_yaxis()
+        ax1.set_xlim([0, im.shape[1]])
+        ax1.set_ylim([im.shape[0], 0])
+
+        ax2.set_title('original label points')
+        ax2.invert_yaxis()
+        ax2.set_xlim([0, im.shape[1]])
+        ax2.set_ylim([im.shape[0], 0])
 
         if cfg.TEST.POSE_REFINE:
-            ax = fig.add_subplot(3, 3, 8, aspect='equal')
+            ax = fig.add_subplot(3, 3, 9, aspect='equal')
             plt.imshow(im)
             ax.invert_yaxis()
             for i in xrange(rois.shape[0]):
@@ -1312,6 +1353,7 @@ def test_net_single_frame(sess, net, imdb, weights_filename, model_filename):
 
         labels, probs, vertex_pred, rois, poses = im_segment_single_frame(sess, net, im, im_depth, meta_data, voxelizer, imdb._extents, imdb._points_all, imdb._symmetry, imdb.num_classes)
 
+        print labels, probs, vertex_pred, rois, poses
         labels = unpad_im(labels, 16)
         im_scale = cfg.TEST.SCALES_BASE[0]
         # build the label image
@@ -1862,15 +1904,18 @@ def test_net_images(sess, net, imdb, weights_filename, rgb_filenames, depth_file
         colors[i * 3 + 2] = imdb._class_colors[i][2]
 
     if cfg.TEST.VISUALIZE:
-        perm = np.random.permutation(np.arange(num_images))
-        # perm = xrange(num_images)
+        # perm = np.random.permutation(np.arange(num_images))
+        perm = xrange(num_images)
     else:
         perm = xrange(num_images)
 
     if (cfg.TEST.VERTEX_REG_2D and cfg.TEST.POSE_REFINE) or (cfg.TEST.VERTEX_REG_3D and cfg.TEST.POSE_REG):
-        import libsynthesizer
+        # import libsynthesizer
+        from synthesize import libsynthesizer
+
         synthesizer = libsynthesizer.Synthesizer(cfg.CAD, cfg.POSE)
         synthesizer.setup(cfg.TRAIN.SYN_WIDTH, cfg.TRAIN.SYN_HEIGHT)
+        print "synthesizer setup done"
 
     for i in perm:
 
@@ -1894,8 +1939,10 @@ def test_net_images(sess, net, imdb, weights_filename, rgb_filenames, depth_file
         _t['im_segment'].tic()
 
         labels, probs, vertex_pred, rois, poses = im_segment_single_frame(sess, net, im, im_depth, meta_data, voxelizer, imdb._extents, imdb._points_all, imdb._symmetry, imdb.num_classes)
+        # print labels, probs, vertex_pred, rois, poses
 
         labels = unpad_im(labels, 16)
+        print labels.shape
         im_scale = cfg.TEST.SCALES_BASE[0]
         # build the label image
         im_label = imdb.labels_to_image(im, labels)
@@ -1905,6 +1952,7 @@ def test_net_images(sess, net, imdb, weights_filename, rgb_filenames, depth_file
         if cfg.TEST.VERTEX_REG_2D:
             if cfg.TEST.POSE_REG:
                 # pose refinement
+                print "refining pose 1"
                 fx = meta_data['intrinsic_matrix'][0, 0] * im_scale
                 fy = meta_data['intrinsic_matrix'][1, 1] * im_scale
                 px = meta_data['intrinsic_matrix'][0, 2] * im_scale
@@ -1916,6 +1964,7 @@ def test_net_images(sess, net, imdb, weights_filename, rgb_filenames, depth_file
                 poses_icp = np.zeros((poses.shape[0], 7), dtype=np.float32)
                 error_threshold = 0.01
                 if cfg.TEST.POSE_REFINE:
+                    print "refining pose 2"
                     labels_icp = labels.copy();
                     rois_icp = rois
                     if imdb.num_classes == 2:

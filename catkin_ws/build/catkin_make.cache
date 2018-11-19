@@ -1,2 +1,0 @@
-posecnn_kinect
--DCATKIN_DEVEL_PREFIX=/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/install -G Unix Makefiles

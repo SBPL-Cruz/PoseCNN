@@ -112,7 +112,7 @@ class SolverWrapper(object):
             self.restore(sess, self.pretrained_ckpt)
 
         tf.get_default_graph().finalize()
-
+        print "loading pretrained done"
         coord = tf.train.Coordinator()
         if cfg.TRAIN.VISUALIZE:
             load_and_enqueue(sess, self.net, data_layer, coord)
@@ -127,7 +127,7 @@ class SolverWrapper(object):
             summary, loss_value, lr, _ = sess.run([merged, loss, learning_rate, train_op])
             train_writer.add_summary(summary, iter)
             timer.toc()
-            
+
             print 'iter: %d / %d, loss: %.4f, lr: %.8f, time: %.2f' %\
                     (iter+1, max_iters, loss_value, lr, timer.diff)
 
@@ -184,7 +184,7 @@ class SolverWrapper(object):
             loss_value, loss_cls_value, loss_vertex_value, loss_regu_value, lr, _ = sess.run([loss, loss_cls, loss_vertex, loss_regu, learning_rate, train_op])
             # train_writer.add_summary(summary, iter)
             timer.toc()
-            
+
             print 'iter: %d / %d, loss: %.4f, loss_cls: %.4f, loss_vertex: %.4f, loss_regu: %.12f, lr: %.8f, time: %.2f' %\
                     (iter+1, max_iters, loss_value, loss_cls_value, loss_vertex_value, loss_regu_value, lr, timer.diff)
 
@@ -241,7 +241,7 @@ class SolverWrapper(object):
             loss_value, loss_cls_value, loss_vertex_value, loss_pose_value, lr, _ = sess.run([loss, loss_cls, loss_vertex, loss_pose, learning_rate, train_op])
             # train_writer.add_summary(summary, iter)
             timer.toc()
-            
+
             print 'iter: %d / %d, loss: %.4f, loss_cls: %.4f, loss_vertex: %.4f, loss_pose: %.4f, lr: %.8f,  time: %.2f' %\
                     (iter+1, max_iters, loss_value, loss_cls_value, loss_vertex_value, loss_pose_value, lr, timer.diff)
 
@@ -293,7 +293,7 @@ class SolverWrapper(object):
             loss_value, loss_cls_value, loss_vertex_value, loss_pose_value, loss_domain_value, label_domain_value, domain_label_value, lr, _ = sess.run([loss, loss_cls, loss_vertex, loss_pose, loss_domain, label_domain, domain_label, learning_rate, train_op])
             # train_writer.add_summary(summary, iter)
             timer.toc()
-            
+
             print 'iter: %d / %d, loss: %.4f, loss_cls: %.4f, loss_vertex: %.4f, loss_pose: %.4f, loss_domain: %.4f, lr: %.8f,  time: %.2f' %\
                     (iter+1, max_iters, loss_value, loss_cls_value, loss_vertex_value, loss_pose_value, loss_domain_value, lr, timer.diff)
             print label_domain_value
@@ -351,7 +351,7 @@ class SolverWrapper(object):
                 = sess.run([loss, loss_rpn_cls, loss_rpn_box, loss_cls, loss_box, loss_pose, learning_rate, train_op])
             # train_writer.add_summary(summary, iter)
             timer.toc()
-            
+
             print 'iter: %d / %d, loss: %.4f, loss_rpn_cls: %.4f, loss_rpn_box: %.4f, loss_cls: %.4f, loss_box: %.4f, loss_pose: %.4f, lr: %.8f, time: %.2f' %\
                     (iter+1, max_iters, loss_value, loss_rpn_cls_value, loss_rpn_box_value, loss_cls_value, loss_box_value, loss_pose_value, lr, timer.diff)
 
@@ -397,6 +397,7 @@ def load_and_enqueue(sess, net, data_layer, coord):
         elif cfg.INPUT == 'NORMAL':
             data_blob = blobs['data_image_normal']
 
+        # print data_blob.shape
         if cfg.TRAIN.SINGLE_FRAME:
             if cfg.TRAIN.SEGMENTATION:
                 if cfg.INPUT == 'RGBD':
@@ -477,7 +478,7 @@ def loss_quaternion(pose_pred, pose_targets, pose_weights):
 
 def train_net(network, imdb, roidb, output_dir, pretrained_model=None, pretrained_ckpt=None, max_iters=40000):
     """Train a Fast R-CNN network."""
-
+    print "in train_net"
     loss_regu = tf.add_n(tf.losses.get_regularization_losses(), 'regu')
     if cfg.TRAIN.SINGLE_FRAME:
         # classification loss
@@ -510,7 +511,7 @@ def train_net(network, imdb, roidb, output_dir, pretrained_model=None, pretraine
                         domain_label = network.get_output("domain_label")
                         label_domain = network.get_output("label_domain")
                         loss_domain = cfg.TRAIN.ADAPT_WEIGHT * tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=domain_score, labels=label_domain))
-                        loss = loss_cls + loss_vertex + loss_pose + loss_domain + loss_regu 
+                        loss = loss_cls + loss_vertex + loss_pose + loss_domain + loss_regu
                     else:
                         loss = loss_cls + loss_vertex + loss_pose + loss_regu
                 else:
@@ -532,12 +533,13 @@ def train_net(network, imdb, roidb, output_dir, pretrained_model=None, pretraine
                                                cfg.TRAIN.STEPSIZE, 0.1, staircase=True)
     momentum = cfg.TRAIN.MOMENTUM
     train_op = tf.train.MomentumOptimizer(learning_rate, momentum).minimize(loss, global_step=global_step)
-    
+
     #config = tf.ConfigProto()
     #config.gpu_options.per_process_gpu_memory_fraction = 0.85
     #config.gpu_options.allow_growth = True
     #with tf.Session(config=config) as sess:
-    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.6, allow_growth=True)
+    with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, gpu_options=gpu_options)) as sess:
 
         # data layer
         if cfg.TRAIN.SINGLE_FRAME:
@@ -635,7 +637,7 @@ def train_net_det(network, imdb, roidb, output_dir, pretrained_model=None, pretr
                                            cfg.TRAIN.STEPSIZE, 0.1, staircase=True)
     momentum = cfg.TRAIN.MOMENTUM
     train_op = tf.train.MomentumOptimizer(learning_rate, momentum).minimize(loss, global_step=global_step)
-    
+
     #config = tf.ConfigProto()
     #config.gpu_options.per_process_gpu_memory_fraction = 0.85
     #config.gpu_options.allow_growth = True

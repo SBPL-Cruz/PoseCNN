@@ -1,8 +1,0 @@
-prefix=/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel
-
-Name: posecnn_kinect
-Description: Description of posecnn_kinect
-Version: 0.0.0
-Cflags: -I/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel/include
-Libs: -L/media/aditya/A69AFABA9AFA85D9/Cruzr/code/PoseCNN/catkin_ws/devel/lib 
-Requires: 

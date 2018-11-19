@@ -10,7 +10,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 add_definitions(-std=c++11)
 add_definitions(-Wall)
 add_definitions(-fPIC)
-add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+#add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
 include(${CMAKE_SOURCE_DIR}/cmake/FindNLopt.cmake)
 
@@ -75,13 +75,13 @@ link_libraries(${Pangolin_LIBRARIES}
                assimp
                util)
 
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-std=c++11;--expt-relaxed-constexpr;-O3;-arch=sm_61;--expt-extended-lambda;--verbose;")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-std=c++11;--expt-relaxed-constexpr;-O3;-arch=sm_61;--expt-extended-lambda;--verbose;--debug;")
 
-add_definitions(-Wno-unused-result)
-add_definitions(-Wno-unused-but-set-variable)
-add_definitions(-Wno-unused-variable)
-add_definitions(-Wno-reorder)
-add_definitions(-Wno-deprecated-declarations)
+#add_definitions(-Wno-unused-result)
+#add_definitions(-Wno-unused-but-set-variable)
+#add_definitions(-Wno-unused-variable)
+#add_definitions(-Wno-reorder)
+#add_definitions(-Wno-deprecated-declarations)
 
 cuda_add_library(
   synthesizer
@@ -91,7 +91,7 @@ cuda_add_library(
   Hypothesis.cpp
 )
 
-#cuda_add_executable(synthesize
-#                    synthesize.cpp
-#                    thread_rand.cpp
-#                    Hypothesis.cpp)
+cuda_add_executable(synthesize
+                    synthesize.cpp
+                    thread_rand.cpp
+                    Hypothesis.cpp)

@@ -122,8 +122,8 @@ if __name__ == '__main__':
     rois[:,4] = boxes[:, 0] + boxes[:, 2]
     rois[:,5] = boxes[:, 1] + boxes[:, 3]
 
-    poses_new = np.zeros((poses.shape[0], 7), dtype=np.float32)        
-    poses_icp = np.zeros((poses.shape[0], 7), dtype=np.float32)     
+    poses_new = np.zeros((poses.shape[0], 7), dtype=np.float32)
+    poses_icp = np.zeros((poses.shape[0], 7), dtype=np.float32)
     error_threshold = 0.01
     synthesizer_.estimate_poses(labels_icp, im_depth, rois, poses, poses_new, poses_icp, fx, fy, px, py, znear, zfar, factor, error_threshold)
 
@@ -156,7 +156,7 @@ def vis_segmentations_vertmaps(im, im_depth, im_labels, im_labels_gt, colors,
     # show class label
     ax = fig.add_subplot(3, 4, 9)
     plt.imshow(im_labels)
-    ax.set_title('class labels')      
+    ax.set_title('class labels')
 
     # show centers
     for i in xrange(rois.shape[0]):
