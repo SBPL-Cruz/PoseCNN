@@ -14,3 +14,4 @@ sensor_msgs/Image center
 sensor_msgs/Image depth
 float32[] rois
 float32[] poses
+string[] labels

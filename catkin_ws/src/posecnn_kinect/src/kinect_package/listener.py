@@ -288,6 +288,16 @@ class ImageListener:
                                        # edgecolor='g', linewidth=3))
         # publish
         # print im_center.shape[0]
+        classes = self.imdb._classes
+        label_list = []
+        print poses
+        for i in xrange(rois.shape[0]):
+            cls = int(rois[i, 1])
+            if cls > 0:
+                label_list.append(classes[cls])
+                print classes[cls]
+                # print poses[cls, :]
+
         msg = PoseCNNMsg()
         msg.height = int(im.shape[0])
         msg.width = int(im.shape[1])
@@ -305,6 +315,7 @@ class ImageListener:
         msg.depth = self.cv_bridge.cv2_to_imgmsg(depth_cv, 'mono16')
         msg.rois = rois.astype(np.float32).flatten().tolist()
         msg.poses = poses.astype(np.float32).flatten().tolist()
+        msg.labels = label_list
         self.posecnn_pub.publish(msg)
 
         label_msg = self.cv_bridge.cv2_to_imgmsg(im_label)
@@ -333,7 +344,7 @@ class ImageListener:
                 cls = int(rois[i, 1])
                 if cls > 0:
                     T = poses[i, 4:7]
-                    print T
+                    # print T
                     box_marker = Marker()
                     box_marker.type = Marker.CUBE
                     box_marker.scale.x = T[0]
