@@ -296,7 +296,7 @@ class ImageListener:
             if cls > 0:
                 label_list.append(classes[cls])
                 print classes[cls]
-                # print poses[cls, :]
+                print poses[i, :]
 
         msg = PoseCNNMsg()
         msg.height = int(im.shape[0])
@@ -315,7 +315,7 @@ class ImageListener:
         msg.depth = self.cv_bridge.cv2_to_imgmsg(depth_cv, 'mono16')
         msg.rois = rois.astype(np.float32).flatten().tolist()
         msg.poses = poses.astype(np.float32).flatten().tolist()
-        msg.labels = label_list
+        msg.labels = np.array(label_list).astype(np.str).tolist()
         self.posecnn_pub.publish(msg)
 
         label_msg = self.cv_bridge.cv2_to_imgmsg(im_label)
